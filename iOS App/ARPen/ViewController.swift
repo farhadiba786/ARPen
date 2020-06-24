@@ -77,6 +77,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         // Set the scene to the view
         arSceneView.scene = scene
         
+        //arSceneView.debugOptions = [ ARSCNDebugOptions.showWorldOrigin]
+        
         // Setup tap gesture recognizer for imageForPluginInstructions
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action:  #selector(ViewController.imageForPluginInstructionsTapped(_:)))
         self.imageForPluginInstructions.isUserInteractionEnabled = true
