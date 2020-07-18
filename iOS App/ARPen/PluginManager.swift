@@ -28,13 +28,13 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
     var activePlugin: Plugin?
     var delegate: PluginManagerDelegate?
     var experimentalPluginsStartAtIndex: Int
-    
     /**
      inits every plugin
      */
     init(scene: PenScene) {
         self.paintPlugin = PaintPlugin()
-        self.plugins = [ PinchScalingPlugin(), PanScalingPlugin(), ARPenScalingPlugin(), TouchAndPenPlugin(),PanScaling2Plugin(), ARPenScaling2Plugin(), TouchAndPen2Plugin()]
+        self.plugins = [ScrollScalingPlugin(), PenRayScalingPlugin(), PinchScalingPlugin(), TouchAndPenScalingPlugin()]
+        //self.plugins = [TouchAndPenScalingPlugin()]
         self.pluginInstructionsCanBeHidden = Array(repeating: false, count: self.plugins.count)
         self.experimentalPluginsStartAtIndex = 7
         
