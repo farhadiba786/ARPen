@@ -22,12 +22,17 @@
 		4AC711C9204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC711C8204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift */; };
 		AA93510A224245CE002AEB00 /* ARMenusPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA935109224245CE002AEB00 /* ARMenusPlugin.swift */; };
 		AA93510C2242460D002AEB00 /* ARMenusSupportFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA93510B2242460D002AEB00 /* ARMenusSupportFile.swift */; };
-		B421028A2450832100C9D13A /* BoxModelNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42102892450832100C9D13A /* BoxModelNode.swift */; };
-		B421028C24508FB800C9D13A /* BoxNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B421028B24508FB800C9D13A /* BoxNode.swift */; };
-		B45C046B24BF4C6C005BC1AD /* ScrollScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45C046A24BF4C6C005BC1AD /* ScrollScalingPlugin.swift */; };
-		B47B80EE24C337CD007430BE /* PenRayScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47B80ED24C337CD007430BE /* PenRayScalingPlugin.swift */; };
-		B47B80F224C350F6007430BE /* TouchAndPenScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47B80F124C350F6007430BE /* TouchAndPenScalingPlugin.swift */; };
-		B47B80F424C35937007430BE /* PinchScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47B80F324C35937007430BE /* PinchScalingPlugin.swift */; };
+		B42D3C9924CC353A00ABDD97 /* PointScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9324CC353900ABDD97 /* PointScalingPlugin.swift */; };
+		B42D3C9B24CC353A00ABDD97 /* ScrollingDiagonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9524CC353A00ABDD97 /* ScrollingDiagonal.swift */; };
+		B42D3C9C24CC353A00ABDD97 /* PenRayDiagonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9624CC353A00ABDD97 /* PenRayDiagonal.swift */; };
+		B42D3C9D24CC353A00ABDD97 /* DirectPenDiagonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9724CC353A00ABDD97 /* DirectPenDiagonal.swift */; };
+		B42D3C9E24CC353A00ABDD97 /* PinchScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9824CC353A00ABDD97 /* PinchScalingPlugin.swift */; };
+		B42D3CA024CC922C00ABDD97 /* ScrollingProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9F24CC922C00ABDD97 /* ScrollingProjection.swift */; };
+		B42D3CA224CDD07700ABDD97 /* PenRayProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA124CDD07700ABDD97 /* PenRayProjection.swift */; };
+		B42D3CA624CF0E1300ABDD97 /* DirectPenProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA524CF0E1300ABDD97 /* DirectPenProjection.swift */; };
+		B42D3CA824D018FE00ABDD97 /* TouchAndPenProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */; };
+		B42D3CAA24D01C7A00ABDD97 /* TouchAndPenDiagonal.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA924D01C7A00ABDD97 /* TouchAndPenDiagonal.swift */; };
+		B461850D24D0A28A00C88BE2 /* PenRayProjectionImproved.swift in Sources */ = {isa = PBXBuildFile; fileRef = B461850C24D0A28A00C88BE2 /* PenRayProjectionImproved.swift */; };
 		DC18B2BC202384D700884920 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */; };
 		DC28B440200E4353008B77AB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B43F200E4353008B77AB /* AppDelegate.swift */; };
 		DC28B442200E4353008B77AB /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28B441200E4353008B77AB /* art.scnassets */; };
@@ -90,13 +95,17 @@
 		4AC711C8204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceListTableViewController.swift; sourceTree = "<group>"; };
 		AA935109224245CE002AEB00 /* ARMenusPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARMenusPlugin.swift; sourceTree = "<group>"; };
 		AA93510B2242460D002AEB00 /* ARMenusSupportFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARMenusSupportFile.swift; sourceTree = "<group>"; };
-		B42102892450832100C9D13A /* BoxModelNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxModelNode.swift; sourceTree = "<group>"; };
-		B421028B24508FB800C9D13A /* BoxNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxNode.swift; sourceTree = "<group>"; };
-		B45C046A24BF4C6C005BC1AD /* ScrollScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollScalingPlugin.swift; sourceTree = "<group>"; };
-		B47B80ED24C337CD007430BE /* PenRayScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayScalingPlugin.swift; sourceTree = "<group>"; };
-		B47B80F124C350F6007430BE /* TouchAndPenScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenScalingPlugin.swift; sourceTree = "<group>"; };
-		B47B80F324C35937007430BE /* PinchScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchScalingPlugin.swift; sourceTree = "<group>"; };
-		B4939F6A24B9B729009B5FE6 /* border.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = border.png; sourceTree = "<group>"; };
+		B42D3C9324CC353900ABDD97 /* PointScalingPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PointScalingPlugin.swift; sourceTree = "<group>"; };
+		B42D3C9524CC353A00ABDD97 /* ScrollingDiagonal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScrollingDiagonal.swift; sourceTree = "<group>"; };
+		B42D3C9624CC353A00ABDD97 /* PenRayDiagonal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PenRayDiagonal.swift; sourceTree = "<group>"; };
+		B42D3C9724CC353A00ABDD97 /* DirectPenDiagonal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DirectPenDiagonal.swift; sourceTree = "<group>"; };
+		B42D3C9824CC353A00ABDD97 /* PinchScalingPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinchScalingPlugin.swift; sourceTree = "<group>"; };
+		B42D3C9F24CC922C00ABDD97 /* ScrollingProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingProjection.swift; sourceTree = "<group>"; };
+		B42D3CA124CDD07700ABDD97 /* PenRayProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayProjection.swift; sourceTree = "<group>"; };
+		B42D3CA524CF0E1300ABDD97 /* DirectPenProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPenProjection.swift; sourceTree = "<group>"; };
+		B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenProjection.swift; sourceTree = "<group>"; };
+		B42D3CA924D01C7A00ABDD97 /* TouchAndPenDiagonal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenDiagonal.swift; sourceTree = "<group>"; };
+		B461850C24D0A28A00C88BE2 /* PenRayProjectionImproved.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayProjectionImproved.swift; sourceTree = "<group>"; };
 		DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
 		DC28B43C200E4353008B77AB /* ARPen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARPen.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC28B43F200E4353008B77AB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -217,7 +226,6 @@
 				DC28B45D200E4476008B77AB /* OpenCV */,
 				DC28B445200E4353008B77AB /* Main.storyboard */,
 				DC28B448200E4353008B77AB /* Assets.xcassets */,
-				B4939F6A24B9B729009B5FE6 /* border.png */,
 				DC28B441200E4353008B77AB /* art.scnassets */,
 				DC28B44A200E4353008B77AB /* LaunchScreen.storyboard */,
 				DC28B44D200E4353008B77AB /* Info.plist */,
@@ -251,10 +259,17 @@
 				E983D24522ABEDBB0000B8D5 /* SphereByDraggingPlugin.swift */,
 				E983D24722ABF3830000B8D5 /* CylinderByDraggingPlugin.swift */,
 				E983D24922ABFE680000B8D5 /* PyramidByDraggingPlugin.swift */,
-				B47B80F324C35937007430BE /* PinchScalingPlugin.swift */,
-				B45C046A24BF4C6C005BC1AD /* ScrollScalingPlugin.swift */,
-				B47B80ED24C337CD007430BE /* PenRayScalingPlugin.swift */,
-				B47B80F124C350F6007430BE /* TouchAndPenScalingPlugin.swift */,
+				B42D3CA924D01C7A00ABDD97 /* TouchAndPenDiagonal.swift */,
+				B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */,
+				B42D3C9724CC353A00ABDD97 /* DirectPenDiagonal.swift */,
+				B42D3CA524CF0E1300ABDD97 /* DirectPenProjection.swift */,
+				B42D3C9624CC353A00ABDD97 /* PenRayDiagonal.swift */,
+				B42D3CA124CDD07700ABDD97 /* PenRayProjection.swift */,
+				B42D3C9824CC353A00ABDD97 /* PinchScalingPlugin.swift */,
+				B42D3C9524CC353A00ABDD97 /* ScrollingDiagonal.swift */,
+				B42D3C9F24CC922C00ABDD97 /* ScrollingProjection.swift */,
+				B42D3C9324CC353900ABDD97 /* PointScalingPlugin.swift */,
+				B461850C24D0A28A00C88BE2 /* PenRayProjectionImproved.swift */,
 			);
 			path = Plugins;
 			sourceTree = "<group>";
@@ -279,8 +294,6 @@
 				EA0C795A22F078EE00E820E8 /* ARPenSceneConstructor.swift */,
 				EA0C795922F078EE00E820E8 /* ARPenStudyNode.swift */,
 				EA0C795C22F078EE00E820E8 /* ARPenWireBoxNode.swift */,
-				B42102892450832100C9D13A /* BoxModelNode.swift */,
-				B421028B24508FB800C9D13A /* BoxNode.swift */,
 			);
 			path = UserStudySetup;
 			sourceTree = "<group>";
@@ -366,27 +379,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC28B461200E46DC008B77AB /* Plugin.swift in Sources */,
+				B42D3C9B24CC353A00ABDD97 /* ScrollingDiagonal.swift in Sources */,
 				E983D24622ABEDBB0000B8D5 /* SphereByDraggingPlugin.swift in Sources */,
 				EA0C796122F078EE00E820E8 /* ARPenGridSceneConstructor.swift in Sources */,
 				4A56953B20581B9000C8065E /* UserStudyRecordPluginProtocol.swift in Sources */,
-				B47B80EE24C337CD007430BE /* PenRayScalingPlugin.swift in Sources */,
-				B47B80F224C350F6007430BE /* TouchAndPenScalingPlugin.swift in Sources */,
 				4A895F0A2052791100CC2C8E /* CubeByDraggingPlugin.swift in Sources */,
 				DC28B47A200E7E8A008B77AB /* MarkerBox.m in Sources */,
 				4A5695342058195200C8065E /* UserStudyRecordsListTableViewController.swift in Sources */,
-				B421028A2450832100C9D13A /* BoxModelNode.swift in Sources */,
 				DC28B45F200E4561008B77AB /* PenManager.swift in Sources */,
+				B42D3C9C24CC353A00ABDD97 /* PenRayDiagonal.swift in Sources */,
 				EA0C796222F078EE00E820E8 /* ARPenWireBoxNode.swift in Sources */,
 				4A56953920581B6700C8065E /* UserStudyRecordManager.swift in Sources */,
 				DC28B465200E4825008B77AB /* PenScene.swift in Sources */,
 				4AC711C9204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift in Sources */,
-				B421028C24508FB800C9D13A /* BoxNode.swift in Sources */,
 				DC18B2BC202384D700884920 /* UserDefaultsKeys.swift in Sources */,
 				E983D24A22ABFE680000B8D5 /* PyramidByDraggingPlugin.swift in Sources */,
 				DC28B45C200E4470008B77AB /* OpenCVWrapper.mm in Sources */,
 				DC28B444200E4353008B77AB /* ViewController.swift in Sources */,
 				EA0C796422F078EE00E820E8 /* ARPenBoxNode.swift in Sources */,
-				B45C046B24BF4C6C005BC1AD /* ScrollScalingPlugin.swift in Sources */,
 				AA93510A224245CE002AEB00 /* ARMenusPlugin.swift in Sources */,
 				4A59BA1E2244E66D00EA23E7 /* TranslationDemoPlugin.swift in Sources */,
 				4A59BA262244E69400EA23E7 /* CombinationPlugin.swift in Sources */,
@@ -395,20 +405,28 @@
 				AA93510C2242460D002AEB00 /* ARMenusSupportFile.swift in Sources */,
 				EA0C796322F078EE00E820E8 /* ARPenDropTargetNode.swift in Sources */,
 				4A895F0C2052D46000CC2C8E /* CubeByExtractionPlugin.swift in Sources */,
+				B42D3CAA24D01C7A00ABDD97 /* TouchAndPenDiagonal.swift in Sources */,
+				B461850D24D0A28A00C88BE2 /* PenRayProjectionImproved.swift in Sources */,
 				DC28B454200E4389008B77AB /* ARManager.swift in Sources */,
 				4A5695322058192B00C8065E /* UserStudyIDListTableViewController.swift in Sources */,
 				4A56953720581B4500C8065E /* UserStudyRecord.swift in Sources */,
+				B42D3CA624CF0E1300ABDD97 /* DirectPenProjection.swift in Sources */,
+				B42D3CA024CC922C00ABDD97 /* ScrollingProjection.swift in Sources */,
 				DC28B475200E64B7008B77AB /* ObjectCreationPlugin.swift in Sources */,
+				B42D3C9924CC353A00ABDD97 /* PointScalingPlugin.swift in Sources */,
 				DC28B473200E6025008B77AB /* SCNVector3Extensions.swift in Sources */,
 				DC28B440200E4353008B77AB /* AppDelegate.swift in Sources */,
 				DC28B463200E471F008B77AB /* PluginManager.swift in Sources */,
 				DC28B467200E4BF1008B77AB /* PaintPlugin.swift in Sources */,
-				B47B80F424C35937007430BE /* PinchScalingPlugin.swift in Sources */,
+				B42D3C9D24CC353A00ABDD97 /* DirectPenDiagonal.swift in Sources */,
+				B42D3CA224CDD07700ABDD97 /* PenRayProjection.swift in Sources */,
+				B42D3CA824D018FE00ABDD97 /* TouchAndPenProjection.swift in Sources */,
 				E983D24822ABF3830000B8D5 /* CylinderByDraggingPlugin.swift in Sources */,
 				EA0C795F22F078EE00E820E8 /* ARPenStudyNode.swift in Sources */,
 				4AC711C7204EDCBE00CD4239 /* SettingsTableViewController.swift in Sources */,
 				DC28B46B200E4C78008B77AB /* Button.swift in Sources */,
 				EA0C796022F078EE00E820E8 /* ARPenSceneConstructor.swift in Sources */,
+				B42D3C9E24CC353A00ABDD97 /* PinchScalingPlugin.swift in Sources */,
 				DC28B471200E592C008B77AB /* DegreesToRadians.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

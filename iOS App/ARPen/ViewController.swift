@@ -77,8 +77,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         // Set the scene to the view
         arSceneView.scene = scene
         
-        //arSceneView.debugOptions = [ ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
-        
         // Setup tap gesture recognizer for imageForPluginInstructions
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action:  #selector(ViewController.imageForPluginInstructionsTapped(_:)))
         self.imageForPluginInstructions.isUserInteractionEnabled = true
@@ -275,7 +273,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
     }
     
     @IBAction func showPluginInstructions(_ sender: Any) {
-        self.displayPluginInstructions(forPluginID: self.currentActivePluginID)
+        self.displayPluginInstructions(forPluginID: self.currentActivePluginID)        
     }
     
     /**
