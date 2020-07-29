@@ -34,7 +34,7 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
      */
     init(scene: PenScene) {
         self.paintPlugin = PaintPlugin()
-        self.plugins = [PinchScalingPlugin(), PointScalingPlugin(),  DirectPenProjection(), PenRayProjection(), TouchAndPenProjection(), ScrollingProjection(), PenRay()]
+        self.plugins = [PinchScalingPlugin(), PointScalingPlugin(),  DirectPenScalingPlugin(), PenRayScalingPlugin(), TouchAndPenProjection(), ScrollScalingPlugin()]
         //self.plugins = [PenRayProjection()]
         self.pluginInstructionsCanBeHidden = Array(repeating: false, count: self.plugins.count)
         self.experimentalPluginsStartAtIndex = 7

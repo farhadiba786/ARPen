@@ -222,9 +222,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     
                     selected = true
                     tapped1 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                     box.position = corners.rfh
@@ -236,12 +236,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     tapped1 = false
                     selected = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     print("pivot1: \(box.pivot)")
                     print("position1: \(box.position)")
+                    return
                 }
             }
             //select:lfd --> pivot:rbh
@@ -255,9 +256,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     
                     selected = true
                     tapped2 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                     box.position = corners.rbh
@@ -269,12 +270,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped2 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     print("pivot2: \(box.pivot)")
                     print("position2: \(box.position)")
+                    return
                 }
             }
             //select:rbd --> pivot:lfh
@@ -288,13 +290,12 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     
                     selected = true
                     tapped3 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                     box.position = corners.lfh
-                    
                     print("3pivot: \(box.pivot)")
                     print("3position: \(box.position)")
                 }
@@ -302,11 +303,11 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped3 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    
+                    return
                     //print("3pivot: \(box.pivot)")
                     //print("3position: \(box.position)")
                 }
@@ -322,9 +323,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     print("4cornersMethod: \(corners)")
                     selected = true
                     tapped4 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
                     box.position = corners.lbh
@@ -336,12 +337,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped4 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("4pivot: \(box.pivot)")
                     //print("4position: \(box.position)")
+                    return
                 }
             }
             //select:lbh --> pivot:rfd
@@ -355,9 +357,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     print("5cornersMethod: \(corners)")
                     selected = true
                     tapped5 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                     box.position = corners.rfd
@@ -369,12 +371,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped5 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("5pivot: \(box.pivot)")
                     //print("5position: \(box.position)")
+                    return
                 }
             }
             //select:lfh --> pivot:rbd
@@ -389,9 +392,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     
                     selected = true
                     tapped6 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                     box.position = corners.rbd
@@ -403,12 +406,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped6 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("6pivot: \(box.pivot)")
                     //print("6position: \(box.position)")
+                    return
                 }
             }
             //select:rbh --> pivot:lfd
@@ -422,9 +426,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     
                     selected = true
                     tapped7 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                     box.position = corners.lfd
@@ -436,12 +440,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped7 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("7pivot: \(box.pivot)")
                     //print("7position: \(box.position)")
+                    return
                 }
             }
             //select:rfh --> pivot:lbd
@@ -455,9 +460,9 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     
                     selected = true
                     tapped8 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                     box.position = corners.lbd
@@ -469,12 +474,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped8 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("8pivot: \(box.pivot)")
                     //print("8position: \(box.position)")
+                    return
                 }
             }
             //only select the corners
@@ -599,8 +605,8 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.updatedLength = originalLength
         
         let box = SCNBox(width: originalWidth, height: originalHeight, length: originalLength, chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents  = UIColor.yellow
-        box.firstMaterial?.emission.contents = UIColor.yellow
+        box.firstMaterial?.diffuse.contents  = UIColor.systemBlue
+        box.firstMaterial?.emission.contents = UIColor.systemBlue
         box.firstMaterial?.shaderModifiers = [SCNShaderModifierEntryPoint.surface: sm]
         box.firstMaterial?.isDoubleSided = true
         let boundingBox = SCNNode(geometry: box)

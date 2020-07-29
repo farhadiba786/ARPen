@@ -185,49 +185,65 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped1 = true
                             selectedCorner = corners.lbd
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:lfd
                         else if hit.node == corner2{
                             selected = true
                             tapped2 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:rbd
                         else if hit.node == corner3{
                             selected = true
                             tapped3 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:rfd
                         else if hit.node == corner4{
                             selected = true
                             tapped4 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:lbh
                         else if hit.node == corner5{
                             selected = true
                             tapped5 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:lfh
                         else if hit.node == corner6{
                             selected = true
                             tapped6 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:rbh
                         else if hit.node == corner7{
                             selected = true
                             tapped7 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //select:rfh
                         else if hit.node == corner8{
                             selected = true
                             tapped8 = true
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         }
                         //only select the corners
                         else{
@@ -255,48 +271,64 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         selected = false
                         tapped1 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:lfd
                     else if hit.node == corner2 && tapped2{
                         selected = false
                         tapped2 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:rbd
                     else if hit.node == corner3 && tapped3{
                         selected = false
                         tapped3 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:rfd
                     else if hit.node == corner4 && tapped4{
                         selected = false
                         tapped4 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:lbh
                     else if hit.node == corner5 && tapped5{
                         selected = false
                         tapped5 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:lfh
                     else if hit.node == corner6 && tapped6{
                         selected = false
                         tapped6 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:rbh
                     else if hit.node == corner7 && tapped7{
                         selected = false
                         tapped7 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //select:rfh
                     else if hit.node == corner8 && tapped8{
                         selected = false
                         tapped8 = false
                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     }
                     //only select the corners
                     else{
@@ -319,7 +351,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                        if marker1 != scene.drawingNode.childNode(withName: "firstPointMarker", recursively: false){
                            marker1.position = firstPoint
                            marker1.geometry = SCNSphere(radius: 0.004)
-                           marker1.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                           marker1.geometry?.firstMaterial?.diffuse.contents = UIColor.green
                            marker1.name = "firstPointMarker"
                            scene.drawingNode.addChildNode(marker1)
                            }
@@ -554,8 +586,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.updatedLength = originalLength
         
         let box = SCNBox(width: originalWidth, height: originalHeight, length: originalLength, chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents  = UIColor.systemGray
-        box.firstMaterial?.emission.contents = UIColor.yellow
+        box.firstMaterial?.diffuse.contents  = UIColor.systemBlue
+        box.firstMaterial?.emission.contents = UIColor.systemBlue
         box.firstMaterial?.shaderModifiers = [SCNShaderModifierEntryPoint.surface: sm]
         box.firstMaterial?.isDoubleSided = true
         let boundingBox = SCNNode(geometry: box)

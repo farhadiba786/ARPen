@@ -10,20 +10,20 @@ import Foundation
 import ARKit
 
 //include the UserStudyRecordPluginProtocol to demo recording of user study data
-class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
+class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
   
     //reference to userStudyRecordManager to add new records
     var recordManager: UserStudyRecordManager!
     var pluginImage : UIImage? = UIImage.init(named: "DirectPenPlugin")
     var pluginInstructionsImage: UIImage? = UIImage.init(named: "DirectPenPlugin")
-    var pluginIdentifier: String = "ProjectionDirectPen"
+    var pluginIdentifier: String = "DirectPen"
     var needsBluetoothARPen: Bool = false
     var pluginDisabledImage: UIImage? = UIImage.init(named: "ARMenusPluginDisabled")
     var currentScene : PenScene?
     var currentView: ARSCNView?
     var finishedView:  UILabel?
 
-    var currentPoint = SCNVector3()
+    var currentPoint = CGPoint()
     private var insideSphere : SCNNode? = nil
     private var selectedCorner : SCNNode?
     private var highlighted: Bool = false
@@ -35,6 +35,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
     var updatedLength : CGFloat = 0
     //l = left, r = right, b = back, f = front, d = down, h = high
     var corners : (lbd : SCNVector3, lfd : SCNVector3, rbd : SCNVector3, rfd : SCNVector3, lbh : SCNVector3, lfh : SCNVector3, rbh : SCNVector3, rfh : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0))
+    var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
+
 
     //Variables to ensure only one Corner an be selected at a time
     var selected : Bool = false
@@ -56,10 +58,10 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
     var next_lfd = SCNVector3()
     var next_lbh = SCNVector3()
     var next_rfd = SCNVector3()
-    var dirVector1 = SCNVector3()
-    var dirVector2 = SCNVector3()
-    var dirVector3 = SCNVector3()
-    var dirVector4 = SCNVector3()
+    var dirVector1 = CGPoint()
+    var dirVector2 = CGPoint()
+    var dirVector3 = CGPoint()
+    var dirVector4 = CGPoint()
 
     //Variables For USER STUDY TASK
     var userStudyReps = 0
@@ -140,6 +142,18 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
         self.corners.rfh = SCNVector3Make(thePosition.x + halfWidth, thePosition.y + halfHeight, thePosition.z + halfLength)
     }
     
+    func setScreenCorners(){
+        guard let sceneView = self.currentView else { return }
+        self.screenCorners.lbd = CGPoint(x: Double(sceneView.projectPoint(corners.lbd).x), y: Double(sceneView.projectPoint(corners.lbd).y))
+        self.screenCorners.lfd = CGPoint(x: Double(sceneView.projectPoint(corners.lfd).x), y: Double(sceneView.projectPoint(corners.lfd).y))
+        self.screenCorners.rbd = CGPoint(x: Double(sceneView.projectPoint(corners.rbd).x), y: Double(sceneView.projectPoint(corners.rbd).y))
+        self.screenCorners.rfd = CGPoint(x: Double(sceneView.projectPoint(corners.rfd).x), y: Double(sceneView.projectPoint(corners.rfd).y))
+        self.screenCorners.lbh = CGPoint(x: Double(sceneView.projectPoint(corners.lbh).x), y: Double(sceneView.projectPoint(corners.lbh).y))
+        self.screenCorners.lfh = CGPoint(x: Double(sceneView.projectPoint(corners.lfh).x), y: Double(sceneView.projectPoint(corners.lfh).y))
+        self.screenCorners.rbh = CGPoint(x: Double(sceneView.projectPoint(corners.rbh).x), y: Double(sceneView.projectPoint(corners.rbh).y))
+        self.screenCorners.rfh = CGPoint(x: Double(sceneView.projectPoint(corners.rfh).x), y: Double(sceneView.projectPoint(corners.rfh).y))
+    }
+    
     //compute the diagonals to drag the corner along
     func lineBetweenNodes(positionA: SCNVector3, positionB: SCNVector3, inScene: SCNScene) -> SCNNode {
         let vector = SCNVector3(positionA.x - positionB.x, positionA.y - positionB.y, positionA.z - positionB.z)
@@ -150,7 +164,7 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
         lineGeometry.radius = 0.005
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        lineGeometry.firstMaterial!.diffuse.contents = UIColor.green
+        lineGeometry.firstMaterial!.diffuse.contents = UIColor.yellow
 
         let lineNode = SCNNode(geometry: lineGeometry)
         lineNode.opacity = 0.01
@@ -197,42 +211,42 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
         
         if (corners.lbd.x - 0.008 <= point.x && point.x <= corners.lbd.x + 0.008 && corners.lbd.y - 0.008 <= point.y && point.y <= corners.lbh.y + 0.008
             && corners.lbd.z - 0.008 <= point.z && point.z <= corners.lbd.z + 0.008){
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere1
         }
         else if (corners.lfd.x - 0.008 <= point.x && point.x <= corners.lfd.x + 0.008 && corners.lfd.y - 0.008 <= point.y && point.y <= corners.lfd.y + 0.008
         && corners.lfd.z - 0.008 <= point.z && point.z <= corners.lfd.z + 0.008){
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere2
         }
         else if (corners.rbd.x - 0.008 <= point.x && point.x <= corners.rbd.x + 0.008 && corners.rbd.y - 0.008 <= point.y && point.y <= corners.rbd.y + 0.008
         && corners.rbd.z - 0.008 <= point.z && point.z <= corners.rbd.z + 0.008){
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere3
         }
         else if (corners.rfd.x - 0.008 <= point.x && point.x <= corners.rfd.x + 0.008 && corners.rfd.y - 0.008 <= point.y && point.y <= corners.rfd.y + 0.008
         && corners.rfd.z - 0.008 <= point.z && point.z <= corners.rfd.z + 0.008){
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere4
         }
         else if (corners.lbh.x - 0.008 <= point.x && point.x <= corners.lbh.x + 0.008 && corners.lbh.y - 0.008 <= point.y && point.y <= corners.lbh.y + 0.008
         && corners.lbh.z - 0.008 <= point.z && point.z <= corners.lbh.z + 0.008){
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere5
         }
         else if (corners.lfh.x - 0.008 <= point.x && point.x <= corners.lfh.x + 0.008 && corners.lfh.y - 0.008 <= point.y && point.y <= corners.lfh.y + 0.008
         && corners.lfh.z - 0.008 <= point.z && point.z <= corners.lfh.z + 0.008){
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere6
         }
         else if  (corners.rbh.x - 0.008 <= point.x && point.x <= corners.rbh.x + 0.008 && corners.rbh.y - 0.008 <= point.y && point.y <= corners.rbh.y + 0.008
                && corners.rbh.z - 0.008 <= point.z && point.z <= corners.rbh.z + 0.008){
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere = sphere7
         }
         else if (corners.rfh.x - 0.008 <= point.x && point.x <= corners.rfh.x + 0.008 && corners.rfh.y - 0.008 <= point.y && point.y <= corners.rfh.y + 0.008
         && corners.rfh.z - 0.008 <= point.z && point.z <= corners.rfh.z + 0.008){
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
             insideSphere  = sphere8
         }
         else{
@@ -247,11 +261,17 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
         }
     }
     
-    func dotProduct(vecA: SCNVector3, vecB: SCNVector3)-> Float{
-        return (vecA.x * vecB.x + vecA.y * vecB.y + vecA.z * vecB.z)
+    func dotProduct(vecA: CGPoint, vecB: CGPoint)-> CGFloat{
+        return (vecA.x * vecB.x + vecA.y * vecB.y)
     }
 
     func didUpdateFrame(scene: PenScene, buttons: [Button : Bool]) {
+        setScreenCorners()
+        //define initial diagonals
+        dirVector1 = CGPoint(x: screenCorners.lbd.x - screenCorners.rfh.x, y: screenCorners.lbd.y - screenCorners.rfh.y)
+        dirVector2 = CGPoint(x: screenCorners.rbd.x - screenCorners.lfh.x, y: screenCorners.rbd.y - screenCorners.lfh.y)
+        dirVector3 = CGPoint(x: screenCorners.lfd.x - screenCorners.rbh.x, y: screenCorners.lfd.y - screenCorners.rbh.y)
+        dirVector4 = CGPoint(x: screenCorners.rfd.x - screenCorners.lbh.x, y: screenCorners.rfd.y - screenCorners.lbh.y)
         guard let scene = self.currentScene else {return}
         guard let sceneView = self.currentView else { return }
         guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
@@ -318,7 +338,7 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
         if pressed{
             //only perform scaling if pentip is inside corner sphere
             if let selectedCorner = self.insideSphere{
-                selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.green
+                selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
                     //select:lbd --> pivot:rfh
                     if selectedCorner == corner1 {
                         if selected == false{
@@ -331,8 +351,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped1 = true
                             line1.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                             box.position = corners.rfh
@@ -353,8 +373,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped2 = true
                             line3.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                             box.position = corners.rbh
@@ -375,8 +395,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped3 = true
                             line2.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                             box.position = corners.lfh
@@ -397,8 +417,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped4 = true
                             line4.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
                             box.position = corners.lbh
@@ -419,8 +439,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped5 = true
                             line4.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                             box.position = corners.rfd
@@ -442,8 +462,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped6 = true
                             line2.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                             box.position = corners.rbd
@@ -464,8 +484,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped7 = true
                             line3.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.red
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                             box.position = corners.lfd
@@ -486,8 +506,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             selected = true
                             tapped8 = true
                             line1.opacity = 0.3
-                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                            box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                            box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                            box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                             box.position = corners.lbd
@@ -499,324 +519,334 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                 
                
                 if selected == true {
+                    currentPoint = CGPoint(x: Double(sceneView.projectPoint(scene.pencilPoint.position).x), y: Double(sceneView.projectPoint(scene.pencilPoint.position).y))
                     //Project onto diagonal connecting lbd and rfh if one of the corners is selected
                     if (tapped1 || tapped8){
-                        currentPoint = scene.pencilPoint.position
-                        print("curPoint: \(currentPoint)")
-                        print ("corners.rfh \(corners.rfh)")
-                        print("dirVec1: \(dirVector1)")
-                        let scalar1 = dotProduct(vecA: (currentPoint - corners.rfh) , vecB: dirVector1)  / dotProduct(vecA: dirVector1, vecB: dirVector1)
-                        let projectedPoint1 = corners.rfh + SCNVector3(dirVector1.x * scalar1, dirVector1.y * scalar1, dirVector1.z * scalar1)
-                        print("projectedPoint1 \(projectedPoint1)")
-                        updatedHeight = CGFloat(abs(projectedPoint1.y - box.position.y))
-                        //print("updatedHeight: \(updatedHeight)")
-                        let scaleFactor = Float(updatedHeight / originalHeight)
-                        updatedWidth = originalWidth * CGFloat(scaleFactor)
-                        //print("updatedWidth: \(updatedWidth)")
-                        updatedLength = originalLength * CGFloat(scaleFactor)
-                        //print("updatedlength: \(updatedLength)")
-                        print("scaleFactor1: \(scaleFactor)")
+                        let vecA = CGPoint(x:currentPoint.x - screenCorners.rfh.x, y:currentPoint.y - screenCorners.rfh.y)
+                        let scalar1 = dotProduct(vecA: vecA , vecB: dirVector1)  / dotProduct(vecA: dirVector1, vecB: dirVector1)
+                        let scaledDirVec = CGPoint(x: dirVector1.x * scalar1, y: dirVector1.y * scalar1)
+                        let projectedPoint1 = CGPoint(x: screenCorners.rfh.x + scaledDirVec.x, y: screenCorners.rfh.y + scaledDirVec.y)
+                        print("projection: \(projectedPoint1)")
+                        var hitTestResult = sceneView.hitTest(projectedPoint1, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
+                        for hit in hitTestResult{
+                                let currentPointInWC = hit.worldCoordinates
+                                updatedHeight = CGFloat(abs(currentPointInWC.y - box.position.y))
+                                let scaleFactor = Float(updatedHeight / originalHeight)
+                                updatedWidth = originalWidth * CGFloat(scaleFactor)
+                                updatedLength = originalLength * CGFloat(scaleFactor)
 
-                        if(tapped1){
-                            centerPosition = SCNVector3(x: corners.rfh.x - Float(updatedWidth/2), y: corners.rfh.y - Float(updatedHeight/2), z: corners.rfh.z - Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                            r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
-                        }
-                        else if(tapped8){
-                            centerPosition = SCNVector3(x: corners.lbd.x + Float(updatedWidth/2), y: corners.lbd.y + Float(updatedHeight/2), z: corners.lbd.z + Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                            r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
-                        }
+                                if(tapped1){
+                                    centerPosition = SCNVector3(x: corners.rfh.x - Float(updatedWidth/2), y: corners.rfh.y - Float(updatedHeight/2), z: corners.rfh.z - Float(updatedLength/2))
+                                    box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                    r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                    r2d2.position = centerPosition
+                                }
+                                else if(tapped8){
+                                    centerPosition = SCNVector3(x: corners.lbd.x + Float(updatedWidth/2), y: corners.lbd.y + Float(updatedHeight/2), z: corners.lbd.z + Float(updatedLength/2))
+                                    box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                    r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                    r2d2.position = centerPosition
+                                }
+                                //print("centerPosition: \(centerPosition)")
+                                //update Corners
+                                setCorners()
+                                setSpherePosition()
+                                
+                                //update diagonals
+                                if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
+                                    line2.removeFromParentNode()
+                                }
+                                if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
+                                    line3.removeFromParentNode()
+                                }
+                                if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
+                                    line4.removeFromParentNode()
+                                }
+                                
+                                let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
+                                 next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+                                 next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+                                
+                                let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
+                                 next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+                                 next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
+                                
+                                let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
+                                 next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+                                 next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
 
-                        //update Corners
-                        setCorners()
-                        setSpherePosition()
+                                //diagonal from lfh to rbd
+                                let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
+                                    if line2 != scene.drawingNode.childNode(withName: "diagonal2", recursively: false){
+                                    line2.name = "diagonal2"
+                                    scene.drawingNode.addChildNode(line2)
+                                }
+                                //diagonal from lfd to rbh
+                                let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
+                                    if line3 != scene.drawingNode.childNode(withName: "diagonal3", recursively: false){
+                                    line3.name = "diagonal3"
+                                    scene.drawingNode.addChildNode(line3)
+                                }
+                                //diagonal from rfd to lbh
+                                let line4 = lineBetweenNodes(positionA: next_lbh, positionB: next_rfd, inScene: scene)
+                                    if line4 != scene.drawingNode.childNode(withName: "diagonal4", recursively: false){
+                                    line4.name = "diagonal4"
+                                    scene.drawingNode.addChildNode(line4)
+                                }
+                                else{
+                                    if let index = hitTestResult.firstIndex(of: hit) {
+                                        hitTestResult.remove(at: index)
+                                    }
+                                }
 
-                        //update diagonals
-                        if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
-                            line2.removeFromParentNode()
+                            }
                         }
-                        if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
-                            line3.removeFromParentNode()
-                        }
-                        if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
-                            line4.removeFromParentNode()
-                        }
-
-                        let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-                        next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-                        next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
-
-                        let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-                        next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-                        next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
-
-
-                        let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-                        next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-                        next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
-
-                        //diagonal from lfh to rbd
-                        let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
-                        if line2 != scene.drawingNode.childNode(withName: "diagonal2", recursively: false){
-                             line2.name = "diagonal2"
-                             scene.drawingNode.addChildNode(line2)
-                        }
-                        //diagonal from lfd to rbh
-                        let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
-                        if line3 != scene.drawingNode.childNode(withName: "diagonal3", recursively: false){
-                             line3.name = "diagonal3"
-                             scene.drawingNode.addChildNode(line3)
-                        }
-                        //diagonal from rfd to lbh
-                        let line4 = lineBetweenNodes(positionA: next_lbh, positionB: next_rfd, inScene: scene)
-                        if line4 != scene.drawingNode.childNode(withName: "diagonal4", recursively: false){
-                            line4.name = "diagonal4"
-                            scene.drawingNode.addChildNode(line4)
-                        }
-                    }
+                    
                         
                     //Project onto diagonal connecting lfd and rbh if one of the corners is selected
                     else if (tapped2 || tapped7){
-                        currentPoint = scene.pencilPoint.position
-                        print("curPoint: \(currentPoint)")
-                        print ("corners.rbh \(corners.rbh)")
-                        print("dirVec3: \(dirVector3)")
-                        let scalar3 = dotProduct(vecA: (currentPoint - corners.rbh) , vecB: dirVector3)  / dotProduct(vecA: dirVector3, vecB: dirVector3)
-                        let projectedPoint3 = corners.rbh + SCNVector3(dirVector3.x * scalar3, dirVector3.y * scalar3, dirVector3.z * scalar3)
-                        /*let P = SCNVector3(-5,-2,-3)
-                        let r0 = SCNVector3(2,1,-1)
-                        let rv = SCNVector3(-2,-1,2)
-                        let b = P - r0
-                        print("b \(b)")
-                        let dot1 = dotProduct(vecA: P - r0, vecB: rv)
-                        print("dot1 \(dot1)")
-                        let lambda = dotProduct(vecA: P - r0, vecB: rv) / dotProduct(vecA: rv, vecB: rv)
-                        print("lambda \(lambda)")
-                        let S = r0 + SCNVector3(lambda * rv.x, lambda * rv.y, lambda * rv.z)
-                        print("S: \(S)")*/
-                        print("projectedPoint3 \(projectedPoint3)")
-                        //print("projection\(projection)")
-                        let height = CGFloat(abs(projectedPoint3.y - box.position.y))
-                        let width = CGFloat(abs(projectedPoint3.x - box.position.x))
-                        let length = CGFloat(abs(projectedPoint3.z - box.position.z))
-                        let scaleFactorH = Float(height / originalHeight)
-                        let scaleFactorW = Float(width / originalWidth)
-                        let scaleFactorL = Float(length / originalLength)
-                        let scaleFactor = (scaleFactorH+scaleFactorL+scaleFactorW)/3
-                        print("scaleFactor3 \(scaleFactor)")
-                        updatedHeight = originalHeight * CGFloat(scaleFactor)
-                        updatedWidth = originalWidth * CGFloat(scaleFactor)
-                        updatedLength = originalLength * CGFloat(scaleFactor)
+                        let vecA = CGPoint(x:currentPoint.x - screenCorners.rbh.x, y:currentPoint.y - screenCorners.rbh.y)
+                        let scalar3 = dotProduct(vecA: vecA , vecB: dirVector3)  / dotProduct(vecA: dirVector3, vecB: dirVector3)
+                        let scaledDirVec = CGPoint(x: dirVector3.x * scalar3, y: dirVector3.y * scalar3)
+                        let projectedPoint3 = CGPoint(x: screenCorners.rbh.x + scaledDirVec.x, y: screenCorners.rbh.y + scaledDirVec.y)
+                        print("projection: \(projectedPoint3)")
+                        var hitTestResult = sceneView.hitTest(projectedPoint3, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
+                        for hit in hitTestResult{
+                            if hit.node == line3{
+                                let currentPointInWC = hit.worldCoordinates
+                                updatedHeight = CGFloat(abs(currentPointInWC.y - box.position.y))
+                                let scaleFactor = Float(updatedHeight / originalHeight)
+                                updatedWidth = originalWidth * CGFloat(scaleFactor)
+                                updatedLength = originalLength * CGFloat(scaleFactor)
 
-                        if(tapped2){
-                            centerPosition = SCNVector3(x: corners.rbh.x - Float(updatedWidth/2), y: corners.rbh.y - Float(updatedHeight/2), z: corners.rbh.z + Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                            r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
-                        }
-                        else if(tapped7){
-                            centerPosition = SCNVector3(x: corners.lfd.x + Float(updatedWidth/2), y: corners.lfd.y + Float(updatedHeight/2), z: corners.lfd.z - Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                            r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
-                        }
-                        
-                        //update Corners
-                        setCorners()
-                        setSpherePosition()
-                        
-                        //update diagonals
-                        if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
-                            line2.removeFromParentNode()
-                        }
-                        if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
-                            line1.removeFromParentNode()
-                        }
-                        if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
-                            line4.removeFromParentNode()
-                        }
+                                if(tapped2){
+                                    centerPosition = SCNVector3(x: corners.rbh.x - Float(updatedWidth/2), y: corners.rbh.y - Float(updatedHeight/2), z: corners.rbh.z + Float(updatedLength/2))
+                                    box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                    r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                    r2d2.position = centerPosition
+                                }
+                                else if(tapped7){
+                                    centerPosition = SCNVector3(x: corners.lfd.x + Float(updatedWidth/2), y: corners.lfd.y + Float(updatedHeight/2), z: corners.lfd.z - Float(updatedLength/2))
+                                    box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                    r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                    r2d2.position = centerPosition
+                                }
+                                
+                                //update Corners
+                                setCorners()
+                                setSpherePosition()
+                                
+                                //update diagonals
+                                if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
+                                    line2.removeFromParentNode()
+                                }
+                                if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
+                                    line1.removeFromParentNode()
+                                }
+                                if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
+                                    line4.removeFromParentNode()
+                                }
 
-                        let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-                        next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-                        next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
-                                        
-                        let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-                        next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-                        next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
+                                let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
+                                 next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+                                 next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+                                
+                                let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
+                                 next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+                                 next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+                                
+                                let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
+                                 next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+                                 next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
 
-                        let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-                        next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-                        next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
-
-                        //diagonal from lfh to rbd
-                        let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
-                        if line2 != scene.drawingNode.childNode(withName: "diagonal2", recursively: false){
-                             line2.name = "diagonal2"
-                             scene.drawingNode.addChildNode(line2)
-                        }
-                        //diagonal from lbd to rfh
-                        let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
-                        if line1 != scene.drawingNode.childNode(withName: "diagonal1", recursively: false){
-                            line1.name = "diagonal1"
-                            scene.drawingNode.addChildNode(line1)
-                        }
-                        //diagonal from rfd to lbh
-                        let line4 = lineBetweenNodes(positionA: next_lbh, positionB: next_rfd, inScene: scene)
-                        if line4 != scene.drawingNode.childNode(withName: "diagonal4", recursively: false){
-                             line4.name = "diagonal4"
-                             scene.drawingNode.addChildNode(line4)
+                                //diagonal from lfh to rbd
+                                let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
+                                    if line2 != scene.drawingNode.childNode(withName: "diagonal2", recursively: false){
+                                         line2.name = "diagonal2"
+                                         scene.drawingNode.addChildNode(line2)
+                                    }
+                                //diagonal from lbd to rfh
+                                let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
+                                    if line1 != scene.drawingNode.childNode(withName: "diagonal1", recursively: false){
+                                        line1.name = "diagonal1"
+                                        scene.drawingNode.addChildNode(line1)
+                                    }
+                                //diagonal from rfd to lbh
+                                let line4 = lineBetweenNodes(positionA: next_lbh, positionB: next_rfd, inScene: scene)
+                                    if line4 != scene.drawingNode.childNode(withName: "diagonal4", recursively: false){
+                                         line4.name = "diagonal4"
+                                         scene.drawingNode.addChildNode(line4)
+                                    }
+                            }
+                            else{
+                                if let index = hitTestResult.firstIndex(of: hit) {
+                                    hitTestResult.remove(at: index)
+                                }
+                            }
                         }
                     }
-                        
                     //Project onto diagonal connecting rbd and lfh if one of the corners is selected
                     else if (tapped3 || tapped6){
-                        currentPoint = scene.pencilPoint.position
-                        print("curPoint: \(currentPoint)")
-                        print ("corners.lfh \(corners.lfh)")
-                        print("dirVec2: \(dirVector2)")
-                        let scalar2 = dotProduct(vecA: (currentPoint - corners.lfh) , vecB: dirVector2)  / dotProduct(vecA: dirVector2, vecB: dirVector2)
-                        let projectedPoint2 = corners.lfh + SCNVector3(dirVector2.x * scalar2, dirVector2.y * scalar2, dirVector2.z * scalar2)
-                        updatedHeight = CGFloat(abs(projectedPoint2.y - box.position.y))
-                        print("projectedPoint2 \(projectedPoint2)")
-                        let scaleFactor = Float(updatedHeight / originalHeight)
-                        updatedWidth = originalWidth * CGFloat(scaleFactor)
-                        updatedLength = originalLength * CGFloat(scaleFactor)
+                    let vecA = CGPoint(x:currentPoint.x - screenCorners.lfh.x, y:currentPoint.y - screenCorners.lfh.y)
+                    let scalar2 = dotProduct(vecA: vecA , vecB: dirVector2)  / dotProduct(vecA: dirVector2, vecB: dirVector2)
+                    let scaledDirVec = CGPoint(x: dirVector2.x * scalar2, y: dirVector3.y * scalar2)
+                    let projectedPoint2 = CGPoint(x: screenCorners.lfh.x + scaledDirVec.x, y: screenCorners.lfh.y + scaledDirVec.y)
+                    print("projection: \(projectedPoint2)")
+                    var hitTestResult = sceneView.hitTest(projectedPoint2, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
+                        for hit in hitTestResult{
+                            if hit.node == line2{
+                            let currentPointInWC = hit.worldCoordinates
+                            updatedHeight = CGFloat(abs(currentPointInWC.y - box.position.y))
+                            let scaleFactor = Float(updatedHeight / originalHeight)
+                            updatedWidth = originalWidth * CGFloat(scaleFactor)
+                            updatedLength = originalLength * CGFloat(scaleFactor)
 
-                        if(tapped3){
-                            centerPosition = SCNVector3(x: corners.lfh.x + Float(updatedWidth/2), y: corners.lfh.y - Float(updatedHeight/2), z: corners.lfh.z - Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                            r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
-                        }
-                        else if(tapped6){
-                            centerPosition = SCNVector3(x: corners.rbd.x - Float(updatedWidth/2), y: corners.rbd.y + Float(updatedHeight/2), z: corners.rbd.z + Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                            r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
-                        }
-
-                        //updateCorners
-                        setCorners()
-                        setSpherePosition()
-
-                        if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
-                            line1.removeFromParentNode()
-                        }
-                        if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
-                            line3.removeFromParentNode()
-                        }
-                        if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
-                            line4.removeFromParentNode()
-                        }
-
-                        let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-                        next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-                        next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
+                            if(tapped3){
+                                centerPosition = SCNVector3(x: corners.lfh.x + Float(updatedWidth/2), y: corners.lfh.y - Float(updatedHeight/2), z: corners.lfh.z - Float(updatedLength/2))
+                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                r2d2.position = centerPosition
+                            }
+                            else if(tapped6){
+                                centerPosition = SCNVector3(x: corners.rbd.x - Float(updatedWidth/2), y: corners.rbd.y + Float(updatedHeight/2), z: corners.rbd.z + Float(updatedLength/2))
+                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                r2d2.position = centerPosition
+                            }
                             
-                        let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-                        next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-                        next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
+                            //updateCorners
+                            setCorners()
+                            setSpherePosition()
 
-                        let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-                        next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-                        next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
+                            if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
+                                line1.removeFromParentNode()
+                            }
+                            if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
+                                line3.removeFromParentNode()
+                            }
+                            if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
+                                line4.removeFromParentNode()
+                            }
+                                
+                            let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
+                             next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+                             next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+                            
+                            let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
+                             next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+                             next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
+                            
+                            let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
+                             next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+                             next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
 
-                        //diagonal from lfd to rbh
-                        let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
-                        if line3 != scene.drawingNode.childNode(withName: "diagonal3", recursively: false){
-                            line3.name = "diagonal3"
-                            scene.drawingNode.addChildNode(line3)
+                            //diagonal from lfd to rbh
+                            let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
+                                if line3 != scene.drawingNode.childNode(withName: "diagonal3", recursively: false){
+                                    line3.name = "diagonal3"
+                                    scene.drawingNode.addChildNode(line3)
+                                }
+                            //diagonal from lbd to rfh
+                            let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
+                                if line1 != scene.drawingNode.childNode(withName: "diagonal1", recursively: false){
+                                    line1.name = "diagonal1"
+                                    scene.drawingNode.addChildNode(line1)
+                                }
+                            //diagonal from rfd to lbh
+                            let line4 = lineBetweenNodes(positionA: next_lbh, positionB: next_rfd, inScene: scene)
+                                if line4 != scene.drawingNode.childNode(withName: "diagonal4", recursively: false){
+                                    line4.name = "diagonal4"
+                                    scene.drawingNode.addChildNode(line4)
+                                }
+                            }
+                            else{
+                                if let index = hitTestResult.firstIndex(of: hit) {
+                                    hitTestResult.remove(at: index)
+                                }
+                            }
                         }
-                        //diagonal from lbd to rfh
-                        let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
-                        if line1 != scene.drawingNode.childNode(withName: "diagonal1", recursively: false){
-                            line1.name = "diagonal1"
-                            scene.drawingNode.addChildNode(line1)
-                        }
-                        //diagonal from rfd to lbh
-                        let line4 = lineBetweenNodes(positionA: next_lbh, positionB: next_rfd, inScene: scene)
-                        if line4 != scene.drawingNode.childNode(withName: "diagonal4", recursively: false){
-                            line4.name = "diagonal4"
-                            scene.drawingNode.addChildNode(line4)
-                        }
-                        
                     }
-                        
                     //Project onto diagonal connecting rfd and lbh if one of the corners is selected
                     else if (tapped4 || tapped5){
-                        currentPoint = scene.pencilPoint.position
-                        print("curPoint: \(currentPoint)")
-                        print ("corners.lbh \(corners.lbh)")
-                        print("dirVec4: \(dirVector4)")
-                        let scalar4 = dotProduct(vecA: (currentPoint - corners.lbh) , vecB: dirVector4)  / dotProduct(vecA: dirVector4, vecB: dirVector4)
-                        let projectedPoint4 = corners.lbh + SCNVector3(dirVector4.x * scalar4, dirVector4.y * scalar4, dirVector4.z * scalar4)
-                        updatedHeight = CGFloat(abs(projectedPoint4.y - box.position.y))
-                        print("projectedPoint4 \(projectedPoint4)")
-                        updatedHeight = CGFloat(abs(projectedPoint4.y - box.position.y))
-                        let scaleFactor = Float(updatedHeight / originalHeight)
-                        updatedWidth = originalWidth * CGFloat(scaleFactor)
-                        updatedLength = originalLength * CGFloat(scaleFactor)
+                    let vecA = CGPoint(x:currentPoint.x - screenCorners.lbh.x, y:currentPoint.y - screenCorners.lbh.y)
+                    let scalar4 = dotProduct(vecA: vecA , vecB: dirVector4)  / dotProduct(vecA: dirVector4, vecB: dirVector4)
+                    let scaledDirVec = CGPoint(x: dirVector4.x * scalar4, y: dirVector4.y * scalar4)
+                    let projectedPoint4 = CGPoint(x: screenCorners.lbh.x + scaledDirVec.x, y: screenCorners.lbh.y + scaledDirVec.y)
+                    print("projection: \(projectedPoint4)")
+                    var hitTestResult = sceneView.hitTest(projectedPoint4, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
+                        for hit in hitTestResult{
+                        //line4.opacity = 0.1
+                            if hit.node == line4{
+                                let currentPointInWC = hit.worldCoordinates
+                                updatedHeight = CGFloat(abs(currentPointInWC.y - box.position.y))
+                                let scaleFactor = Float(updatedHeight / originalHeight)
+                                updatedWidth = originalWidth * CGFloat(scaleFactor)
+                                updatedLength = originalLength * CGFloat(scaleFactor)
 
-                        if(tapped4){
-                        centerPosition = SCNVector3(x: corners.lbh.x + Float(updatedWidth/2), y: corners.lbh.y - Float(updatedHeight/2), z: corners.lbh.z + Float(updatedLength/2))
-                        box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                        r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                        r2d2.position = centerPosition
-                        }
-                        else if(tapped5){
-                        centerPosition = SCNVector3(x: corners.rfd.x - Float(updatedWidth/2), y: corners.rfd.y + Float(updatedHeight/2), z: corners.rfd.z - Float(updatedLength/2))
-                        box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
-                        r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                        r2d2.position = centerPosition
-                        }
+                                if(tapped4){
+                                    centerPosition = SCNVector3(x: corners.lbh.x + Float(updatedWidth/2), y: corners.lbh.y - Float(updatedHeight/2), z: corners.lbh.z + Float(updatedLength/2))
+                                    box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                    r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                r2d2.position = centerPosition
+                                }
+                                else if(tapped5){
+                                    centerPosition = SCNVector3(x: corners.rfd.x - Float(updatedWidth/2), y: corners.rfd.y + Float(updatedHeight/2), z: corners.rfd.z - Float(updatedLength/2))
+                                    box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
+                                    r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
+                                    r2d2.position = centerPosition
+                                }
+                                
+                                //update corners
+                                setCorners()
+                                setSpherePosition()
+                                
+                                //update diagonals
+                                if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
+                                    line1.removeFromParentNode()
+                                }
+                                if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
+                                    line2.removeFromParentNode()
+                                }
+                                if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
+                                    line3.removeFromParentNode()
+                                }
 
-                        //update corners
-                        setCorners()
-                        setSpherePosition()
+                                let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
+                                 next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+                                 next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+                                
+                                let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
+                                 next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+                                 next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+                                
+                                let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
+                                 next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+                                 next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
 
-                        //update diagonals
-                        if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
-                        line1.removeFromParentNode()
-                        }
-                        if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
-                        line2.removeFromParentNode()
-                        }
-                        if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
-                        line3.removeFromParentNode()
-                        }
-
-                        let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-                        next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-                        next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
-                                    
-                        let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-                        next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-                        next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
-
-                        let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-                        next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-                        next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
-
-                        //diagonal from lfd to rbh
-                        let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
-                        if line3 != scene.drawingNode.childNode(withName: "diagonal3", recursively: false){
-                            line3.name = "diagonal3"
-                            scene.drawingNode.addChildNode(line3)
-                        }
-                        //diagonal from lbd to rfh
-                        let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
-                        if line1 != scene.drawingNode.childNode(withName: "diagonal1", recursively: false){
-                            line1.name = "diagonal1"
-                            scene.drawingNode.addChildNode(line1)
-                        }
-                        //diagonal from lfh to rbd
-                        let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
-                        if line2 != scene.drawingNode.childNode(withName: "diagonal2", recursively: false){
-                            line2.name = "diagonal2"
-                            scene.drawingNode.addChildNode(line2)
+                                //diagonal from lfd to rbh
+                                let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
+                                    if line3 != scene.drawingNode.childNode(withName: "diagonal3", recursively: false){
+                                        line3.name = "diagonal3"
+                                        scene.drawingNode.addChildNode(line3)
+                                    }
+                                //diagonal from lbd to rfh
+                                let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
+                                    if line1 != scene.drawingNode.childNode(withName: "diagonal1", recursively: false){
+                                        line1.name = "diagonal1"
+                                        scene.drawingNode.addChildNode(line1)
+                                    }
+                                //diagonal from lfh to rbd
+                                let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
+                                    if line2 != scene.drawingNode.childNode(withName: "diagonal2", recursively: false){
+                                        line2.name = "diagonal2"
+                                        scene.drawingNode.addChildNode(line2)
+                                    }
+                            }
+                            else{
+                                 if let index = hitTestResult.firstIndex(of: hit) {
+                                     hitTestResult.remove(at: index)
+                                 }
+                            }
                         }
                     }
                 }
@@ -830,8 +860,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     tapped1 = false
                     selected = false
                     line1.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -843,8 +873,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped2 = false
                     line3.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -856,8 +886,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped3 = false
                     line2.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -870,8 +900,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped4 = false
                     line4.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -883,8 +913,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped5 = false
                     line4.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -896,8 +926,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped6 = false
                     line2.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -909,8 +939,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped7 = false
                     line3.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -922,8 +952,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped8 = false
                     line1.opacity = 0.01
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                     corner8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
@@ -976,8 +1006,8 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
         self.updatedLength = originalLength
         
         let box = SCNBox(width: originalWidth, height: originalHeight, length: originalLength, chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents  = UIColor.systemGray
-        box.firstMaterial?.emission.contents = UIColor.yellow
+        box.firstMaterial?.diffuse.contents  = UIColor.systemBlue
+        box.firstMaterial?.emission.contents = UIColor.systemBlue
         box.firstMaterial?.shaderModifiers = [SCNShaderModifierEntryPoint.surface: sm]
         box.firstMaterial?.isDoubleSided = true
         let boundingBox = SCNNode(geometry: box)
@@ -1111,21 +1141,21 @@ class DirectPenProjection: Plugin, UserStudyRecordPluginProtocol {
                }
         
         //define initial diagonals
-        dirVector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-        next_rfh = corners.rfh + SCNVector3(-3*dirVector1.x,-3*dirVector1.y,-3*dirVector1.z)
-        next_lbd = corners.rfh + SCNVector3(4*dirVector1.x,4*dirVector1.y,4*dirVector1.z)
-
-        dirVector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-        next_lfh = corners.lfh + SCNVector3(-2*dirVector2.x,-2*dirVector2.y,-2*dirVector2.z)
-        next_rbd = corners.lfh + SCNVector3(3*dirVector2.x,3*dirVector2.y,3*dirVector2.z)
-
-        dirVector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-        next_rbh = corners.rbh + SCNVector3(-2*dirVector3.x,-2*dirVector3.y,-2*dirVector3.z)
-        next_lfd = corners.rbh + SCNVector3(3*dirVector3.x,3*dirVector3.y,3*dirVector3.z)
-
-        dirVector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-        next_lbh = corners.lbh + SCNVector3(-2*dirVector4.x,-2*dirVector4.y,-2*dirVector4.z)
-        next_rfd = corners.lbh + SCNVector3(3*dirVector4.x,3*dirVector4.y,3*dirVector4.z)
+        let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
+         next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+         next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+        
+        let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
+         next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+         next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+        
+        let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
+         next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+         next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
+        
+        let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
+         next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+         next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
         
         //diagonal from lbd to rfh
         let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)

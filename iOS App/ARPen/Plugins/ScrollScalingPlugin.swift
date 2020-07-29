@@ -10,7 +10,7 @@ import Foundation
 import ARKit
 
 //include the UserStudyRecordPluginProtocol to demo recording of user study data
-class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
+class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
   
     //reference to userStudyRecordManager to add new records
     var recordManager: UserStudyRecordManager!
@@ -177,9 +177,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         
                         selected = true
                         tapped1 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                         print("pivotmitte: \(box.pivot)")
@@ -205,9 +205,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         
                         selected = true
                         tapped2 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                         box.position = corners.rbh
@@ -227,9 +227,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         
                         selected = true
                         tapped3 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                         box.position = corners.lfh
@@ -249,9 +249,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         print("4cornersMethod: \(corners)")*/
                         selected = true
                         tapped4 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                         //print("41pivot: \(box.pivot)")
                         //box.pivot = SCNMatrix4MakeTranslation(0.1, 0.1, 0.1)
@@ -270,9 +270,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         print("5cornersMethod: \(corners)")
                         selected = true
                         tapped5 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                         box.position = corners.rfd
@@ -292,9 +292,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         
                         selected = true
                         tapped6 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                         box.position = corners.rbd
@@ -314,9 +314,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         
                         selected = true
                         tapped7 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                         box.position = corners.lfd
@@ -336,9 +336,9 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         
                         selected = true
                         tapped8 = true
-                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemTeal
-                        box.geometry?.firstMaterial?.emission.contents = UIColor.systemTeal
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+                        box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
                         box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                         //box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                         box.position = corners.lbd
@@ -400,18 +400,18 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
                             line4.removeFromParentNode()
                         }
-
+                        
                         let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-                        next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-                        next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
-
+                         next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+                         next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+                        
                         let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-                        next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-                        next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
-
+                         next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+                         next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
+                        
                         let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-                        next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-                        next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
+                         next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+                         next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
 
                         //diagonal from lfh to rbd
                         let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
@@ -484,18 +484,18 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
                             line4.removeFromParentNode()
                         }
-
-                        let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-                        next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-                        next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
-                                        
+                        
                         let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-                        next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-                        next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
-
+                         next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+                         next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+                        
+                        let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
+                         next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+                         next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+                        
                         let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-                        next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-                        next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
+                         next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+                         next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
 
                         //diagonal from lfh to rbd
                         let line2 = lineBetweenNodes(positionA: next_rbd, positionB: next_lfh, inScene: scene)
@@ -565,18 +565,18 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                     if let line4 = currentScene?.drawingNode.childNode(withName: "diagonal4", recursively: false){
                         line4.removeFromParentNode()
                     }
-
-                    let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-                    next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-                    next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
-                                    
+                        
                     let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-                    next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-                    next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
-
+                     next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+                     next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+                    
+                    let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
+                     next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+                     next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
+                    
                     let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-                    next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-                    next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
+                     next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+                     next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
 
                     //diagonal from lfd to rbh
                     let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
@@ -648,18 +648,18 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                         if let line3 = currentScene?.drawingNode.childNode(withName: "diagonal3", recursively: false){
                             line3.removeFromParentNode()
                         }
-
-                        let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-                        next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-                        next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
-                                        
+                        
                         let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-                        next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-                        next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
-
+                         next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+                         next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
+                        
                         let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-                        next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-                        next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
+                         next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+                         next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
+                        
+                        let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
+                         next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+                         next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
 
                         //diagonal from lfd to rbh
                         let line3 = lineBetweenNodes(positionA: next_rbh, positionB: next_lfd, inScene: scene)
@@ -854,10 +854,10 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
         lineGeometry.radius = 0.005
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        lineGeometry.firstMaterial!.diffuse.contents = UIColor.green
+        //lineGeometry.firstMaterial!.diffuse.contents = UIColor.green
 
         let lineNode = SCNNode(geometry: lineGeometry)
-        lineNode.opacity = 0.2
+        lineNode.opacity = 0.01
         lineNode.position = midPosition
         lineNode.look (at: positionB, up: inScene.rootNode.worldUp, localFront: lineNode.worldUp)
         return lineNode
@@ -1080,23 +1080,22 @@ class ScrollingProjection: Plugin, UserStudyRecordPluginProtocol {
                    r2d2.position = centerPosition
                }
   
-        
         //define initial diagonals
         let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
-         next_rfh = corners.rfh + SCNVector3(-3*vector1.x,-3*vector1.y,-3*vector1.z)
-         next_lbd = corners.rfh + SCNVector3(4*vector1.x,4*vector1.y,4*vector1.z)
+         next_rfh = corners.rfh + SCNVector3(-5*vector1.x,-5*vector1.y,-5*vector1.z)
+         next_lbd = corners.rfh + SCNVector3(6*vector1.x,6*vector1.y,6*vector1.z)
         
         let vector2 = SCNVector3(corners.rbd.x - corners.lfh.x, corners.rbd.y - corners.lfh.y, corners.rbd.z - corners.lfh.z)
-         next_lfh = corners.lfh + SCNVector3(-2*vector2.x,-2*vector2.y,-2*vector2.z)
-         next_rbd = corners.lfh + SCNVector3(3*vector2.x,3*vector2.y,3*vector2.z)
+         next_lfh = corners.lfh + SCNVector3(-5*vector2.x,-5*vector2.y,-5*vector2.z)
+         next_rbd = corners.lfh + SCNVector3(6*vector2.x,6*vector2.y,6*vector2.z)
         
         let vector3 = SCNVector3(corners.lfd.x - corners.rbh.x, corners.lfd.y - corners.rbh.y, corners.lfd.z - corners.rbh.z)
-         next_rbh = corners.rbh + SCNVector3(-2*vector3.x,-2*vector3.y,-2*vector3.z)
-         next_lfd = corners.rbh + SCNVector3(3*vector3.x,3*vector3.y,3*vector3.z)
+         next_rbh = corners.rbh + SCNVector3(-5*vector3.x,-5*vector3.y,-5*vector3.z)
+         next_lfd = corners.rbh + SCNVector3(6*vector3.x,6*vector3.y,6*vector3.z)
         
         let vector4 = SCNVector3(corners.rfd.x - corners.lbh.x, corners.rfd.y - corners.lbh.y, corners.rfd.z - corners.lbh.z)
-         next_lbh = corners.lbh + SCNVector3(-2*vector4.x,-2*vector4.y,-2*vector4.z)
-         next_rfd = corners.lbh + SCNVector3(3*vector4.x,3*vector4.y,3*vector4.z)
+         next_lbh = corners.lbh + SCNVector3(-5*vector4.x,-5*vector4.y,-5*vector4.z)
+         next_rfd = corners.lbh + SCNVector3(6*vector4.x,6*vector4.y,6*vector4.z)
         
         //diagonal from lbd to rfh
         let line1 = lineBetweenNodes(positionA: next_lbd, positionB: next_rfh, inScene: scene)
