@@ -22,12 +22,14 @@
 		4AC711C9204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC711C8204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift */; };
 		AA93510A224245CE002AEB00 /* ARMenusPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA935109224245CE002AEB00 /* ARMenusPlugin.swift */; };
 		AA93510C2242460D002AEB00 /* ARMenusSupportFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA93510B2242460D002AEB00 /* ARMenusSupportFile.swift */; };
+		B415D4EF24D82AFA00CEA919 /* MarkerBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = B415D4EE24D82AFA00CEA919 /* MarkerBox.swift */; };
 		B42D3C9924CC353A00ABDD97 /* PointScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9324CC353900ABDD97 /* PointScalingPlugin.swift */; };
 		B42D3C9E24CC353A00ABDD97 /* PinchScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9824CC353A00ABDD97 /* PinchScalingPlugin.swift */; };
 		B42D3CA024CC922C00ABDD97 /* ScrollScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9F24CC922C00ABDD97 /* ScrollScalingPlugin.swift */; };
 		B42D3CA624CF0E1300ABDD97 /* DirectPenScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA524CF0E1300ABDD97 /* DirectPenScalingPlugin.swift */; };
 		B42D3CA824D018FE00ABDD97 /* TouchAndPenProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */; };
 		B461850D24D0A28A00C88BE2 /* PenRayScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B461850C24D0A28A00C88BE2 /* PenRayScalingPlugin.swift */; };
+		B461858B24D1C1E700C88BE2 /* copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B461858A24D1C1E700C88BE2 /* copy.swift */; };
 		DC18B2BC202384D700884920 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */; };
 		DC28B440200E4353008B77AB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B43F200E4353008B77AB /* AppDelegate.swift */; };
 		DC28B442200E4353008B77AB /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28B441200E4353008B77AB /* art.scnassets */; };
@@ -44,7 +46,6 @@
 		DC28B467200E4BF1008B77AB /* PaintPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B466200E4BF1008B77AB /* PaintPlugin.swift */; };
 		DC28B469200E4C43008B77AB /* CylinderLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B468200E4C43008B77AB /* CylinderLine.swift */; };
 		DC28B46B200E4C78008B77AB /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B46A200E4C78008B77AB /* Button.swift */; };
-		DC28B46D200E4E6E008B77AB /* MarkerBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B46C200E4E6E008B77AB /* MarkerBox.swift */; };
 		DC28B471200E592C008B77AB /* DegreesToRadians.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B470200E592C008B77AB /* DegreesToRadians.swift */; };
 		DC28B473200E6025008B77AB /* SCNVector3Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B472200E6025008B77AB /* SCNVector3Extensions.swift */; };
 		DC28B475200E64B7008B77AB /* ObjectCreationPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B474200E64B7008B77AB /* ObjectCreationPlugin.swift */; };
@@ -90,12 +91,14 @@
 		4AC711C8204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceListTableViewController.swift; sourceTree = "<group>"; };
 		AA935109224245CE002AEB00 /* ARMenusPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARMenusPlugin.swift; sourceTree = "<group>"; };
 		AA93510B2242460D002AEB00 /* ARMenusSupportFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARMenusSupportFile.swift; sourceTree = "<group>"; };
+		B415D4EE24D82AFA00CEA919 /* MarkerBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MarkerBox.swift; sourceTree = "<group>"; };
 		B42D3C9324CC353900ABDD97 /* PointScalingPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PointScalingPlugin.swift; sourceTree = "<group>"; };
 		B42D3C9824CC353A00ABDD97 /* PinchScalingPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinchScalingPlugin.swift; sourceTree = "<group>"; };
 		B42D3C9F24CC922C00ABDD97 /* ScrollScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollScalingPlugin.swift; sourceTree = "<group>"; };
 		B42D3CA524CF0E1300ABDD97 /* DirectPenScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPenScalingPlugin.swift; sourceTree = "<group>"; };
 		B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenProjection.swift; sourceTree = "<group>"; };
 		B461850C24D0A28A00C88BE2 /* PenRayScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayScalingPlugin.swift; sourceTree = "<group>"; };
+		B461858A24D1C1E700C88BE2 /* copy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = copy.swift; sourceTree = "<group>"; };
 		DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
 		DC28B43C200E4353008B77AB /* ARPen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARPen.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC28B43F200E4353008B77AB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -116,7 +119,6 @@
 		DC28B466200E4BF1008B77AB /* PaintPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaintPlugin.swift; sourceTree = "<group>"; };
 		DC28B468200E4C43008B77AB /* CylinderLine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CylinderLine.swift; sourceTree = "<group>"; };
 		DC28B46A200E4C78008B77AB /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
-		DC28B46C200E4E6E008B77AB /* MarkerBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkerBox.swift; sourceTree = "<group>"; };
 		DC28B470200E592C008B77AB /* DegreesToRadians.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DegreesToRadians.swift; sourceTree = "<group>"; };
 		DC28B472200E6025008B77AB /* SCNVector3Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCNVector3Extensions.swift; sourceTree = "<group>"; };
 		DC28B474200E64B7008B77AB /* ObjectCreationPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectCreationPlugin.swift; sourceTree = "<group>"; };
@@ -207,7 +209,7 @@
 				DC28B453200E4389008B77AB /* ARManager.swift */,
 				DC28B45E200E4561008B77AB /* PenManager.swift */,
 				DC28B46A200E4C78008B77AB /* Button.swift */,
-				DC28B46C200E4E6E008B77AB /* MarkerBox.swift */,
+				B415D4EE24D82AFA00CEA919 /* MarkerBox.swift */,
 				DC28B462200E471F008B77AB /* PluginManager.swift */,
 				DC28B476200E64C0008B77AB /* Plugins */,
 				4A56953520581AF300C8065E /* UserStudyData */,
@@ -252,6 +254,7 @@
 				B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */,
 				B42D3CA524CF0E1300ABDD97 /* DirectPenScalingPlugin.swift */,
 				B42D3C9824CC353A00ABDD97 /* PinchScalingPlugin.swift */,
+				B461858A24D1C1E700C88BE2 /* copy.swift */,
 				B42D3C9F24CC922C00ABDD97 /* ScrollScalingPlugin.swift */,
 				B42D3C9324CC353900ABDD97 /* PointScalingPlugin.swift */,
 				B461850C24D0A28A00C88BE2 /* PenRayScalingPlugin.swift */,
@@ -383,8 +386,8 @@
 				AA93510A224245CE002AEB00 /* ARMenusPlugin.swift in Sources */,
 				4A59BA1E2244E66D00EA23E7 /* TranslationDemoPlugin.swift in Sources */,
 				4A59BA262244E69400EA23E7 /* CombinationPlugin.swift in Sources */,
-				DC28B46D200E4E6E008B77AB /* MarkerBox.swift in Sources */,
 				DC28B469200E4C43008B77AB /* CylinderLine.swift in Sources */,
+				B461858B24D1C1E700C88BE2 /* copy.swift in Sources */,
 				AA93510C2242460D002AEB00 /* ARMenusSupportFile.swift in Sources */,
 				EA0C796322F078EE00E820E8 /* ARPenDropTargetNode.swift in Sources */,
 				4A895F0C2052D46000CC2C8E /* CubeByExtractionPlugin.swift in Sources */,
@@ -408,6 +411,7 @@
 				EA0C796022F078EE00E820E8 /* ARPenSceneConstructor.swift in Sources */,
 				B42D3C9E24CC353A00ABDD97 /* PinchScalingPlugin.swift in Sources */,
 				DC28B471200E592C008B77AB /* DegreesToRadians.swift in Sources */,
+				B415D4EF24D82AFA00CEA919 /* MarkerBox.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,7 +550,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = K7G4L8283S;
+				DEVELOPMENT_TEAM = 286L2EXR23;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/ARPen",
@@ -570,7 +574,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = K7G4L8283S;
+				DEVELOPMENT_TEAM = 286L2EXR23;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/ARPen",

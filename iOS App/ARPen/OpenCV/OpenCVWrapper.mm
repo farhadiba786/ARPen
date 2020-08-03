@@ -20,7 +20,8 @@ using namespace std;
 
 aruco::MarkerDetector mDetector;
 /// markerSize is the size of the marker in real world in meters.
-float markerSize = 0.0258; // Lieber Felix. Komm bitte nicht nochmal auf die Idee diesen Wert anzupassen, außer du druckst neue Marker! gez. Felix
+//float markerSize = 0.0258; // Lieber Felix. Komm bitte nicht nochmal auf die Idee diesen Wert anzupassen, außer du druckst neue Marker! gez. Felix
+float markerSize = 0.0240;
 
 @interface OpenCVWrapper()
 @property NSOperationQueue* queue;
@@ -90,6 +91,9 @@ float markerSize = 0.0258; // Lieber Felix. Komm bitte nicht nochmal auf die Ide
         std::vector<aruco::Marker> allMarkers;
         std::vector<aruco::Marker> markers;
 
+        std::vector<aruco::Marker> allMarkersSmall;
+        std::vector<aruco::Marker> markersSmall;
+        
         // Detect the markers in the image
         mDetector.detect(image, allMarkers, camParams, markerSize);
 
@@ -97,7 +101,7 @@ float markerSize = 0.0258; // Lieber Felix. Komm bitte nicht nochmal auf die Ide
         int i = 0;
         
         for(it = allMarkers.begin(); it != allMarkers.end(); it++,i++) {
-            if (it->id < 1 || it->id > 8) {
+            if (it->id < 1 || it->id > 20) {
                 continue;
             }
             markers.push_back(*it);
