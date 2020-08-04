@@ -36,6 +36,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
     var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
 
     //Variables to ensure only one Corner an be selected at a time
+    var selectedCorner = SCNNode()
     var selected : Bool = false
     var tapped1 : Bool = false
     var tapped2 : Bool = false
@@ -151,6 +152,316 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
         self.screenCorners.rfh = CGPoint(x: Double(sceneView.projectPoint(corners.rfh).x), y: Double(sceneView.projectPoint(corners.rfh).y))
     }
     
+    func setEdges(){
+        guard let scene = self.currentScene else {return}
+        //edge between lfd to rfd
+        let edge1 = lineBetweenNodes(positionA: corners.lfd, positionB: corners.rfd, inScene: scene)
+        if edge1 != scene.drawingNode.childNode(withName: "edge1", recursively: false){
+            edge1.name = "edge1"
+            edge1.opacity = 0.6
+            scene.drawingNode.addChildNode(edge1)
+        }
+        //edge between lfd to lfh
+        let edge2 = lineBetweenNodes(positionA: corners.lfd, positionB: corners.lfh, inScene: scene)
+        if edge2 != scene.drawingNode.childNode(withName: "edge2", recursively: false){
+            edge2.name = "edge2"
+            edge2.opacity = 0.6
+            scene.drawingNode.addChildNode(edge2)
+        }
+        //edge between lfh to rfh
+        let edge3 = lineBetweenNodes(positionA: corners.lfh, positionB: corners.rfh, inScene: scene)
+        if edge3 != scene.drawingNode.childNode(withName: "edge3", recursively: false){
+            edge3.name = "edge3"
+            edge3.opacity = 0.6
+            scene.drawingNode.addChildNode(edge3)
+        }
+        //edge between rfh to rfd
+        let edge4 = lineBetweenNodes(positionA: corners.rfh, positionB: corners.rfd, inScene: scene)
+        if edge4 != scene.drawingNode.childNode(withName: "edge4", recursively: false){
+            edge4.name = "edge4"
+            edge4.opacity = 0.6
+            scene.drawingNode.addChildNode(edge4)
+        }
+        //edge between lfd to lbd
+        let edge5 = lineBetweenNodes(positionA: corners.lfd, positionB: corners.lbd, inScene: scene)
+        if edge5 != scene.drawingNode.childNode(withName: "edge5", recursively: false){
+            edge5.name = "edge5"
+            edge5.opacity = 0.6
+            scene.drawingNode.addChildNode(edge5)
+        }
+        //edge between lbd to lbh
+        let edge6 = lineBetweenNodes(positionA: corners.lbd, positionB: corners.lbh, inScene: scene)
+        if edge6 != scene.drawingNode.childNode(withName: "edge6", recursively: false){
+            edge6.name = "edge6"
+            edge6.opacity = 0.6
+            scene.drawingNode.addChildNode(edge6)
+        }
+        //edge between lbh to lfh
+        let edge7 = lineBetweenNodes(positionA: corners.lbh, positionB: corners.lfh, inScene: scene)
+        if edge7 != scene.drawingNode.childNode(withName: "edge7", recursively: false){
+            edge7.name = "edge7"
+            edge7.opacity = 0.6
+            scene.drawingNode.addChildNode(edge7)
+        }
+        //edge between lbh to rbh
+        let edge8 = lineBetweenNodes(positionA: corners.lbh, positionB: corners.rbh, inScene: scene)
+        if edge8 != scene.drawingNode.childNode(withName: "edge8", recursively: false){
+            edge8.name = "edge8"
+            edge8.opacity = 0.6
+            scene.drawingNode.addChildNode(edge8)
+        }
+        //edge between rbh to rfh
+        let edge9 = lineBetweenNodes(positionA: corners.rbh, positionB: corners.rfh, inScene: scene)
+        if edge9 != scene.drawingNode.childNode(withName: "edge9", recursively: false){
+            edge9.name = "edge9"
+            edge9.opacity = 0.6
+            scene.drawingNode.addChildNode(edge9)
+        }
+        //edge between rbh to rbd
+        let edge10 = lineBetweenNodes(positionA: corners.rbh, positionB: corners.rbd, inScene: scene)
+        if edge10 != scene.drawingNode.childNode(withName: "edge10", recursively: false){
+            edge10.name = "edge10"
+            edge10.opacity = 0.6
+            scene.drawingNode.addChildNode(edge10)
+        }
+        //edge between rfd to rbd
+        let edge11 = lineBetweenNodes(positionA: corners.rfd, positionB: corners.rbd, inScene: scene)
+        if edge11 != scene.drawingNode.childNode(withName: "edge11", recursively: false){
+            edge11.name = "edge11"
+            edge11.opacity = 0.6
+            scene.drawingNode.addChildNode(edge11)
+        }
+        //edge between lbd to rbd
+        let edge12 = lineBetweenNodes(positionA: corners.lbd, positionB: corners.rbd, inScene: scene)
+        if edge12 != scene.drawingNode.childNode(withName: "edge12", recursively: false){
+            edge12.name = "edge12"
+            edge12.opacity = 0.6
+            scene.drawingNode.addChildNode(edge12)
+        }
+    }
+    
+    func removeAllEdges(){
+        guard let scene = self.currentScene else {return}
+        guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge2 = scene.drawingNode.childNode(withName: "edge2", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge3 = scene.drawingNode.childNode(withName: "edge3", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge4 = scene.drawingNode.childNode(withName: "edge4", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge5 = scene.drawingNode.childNode(withName: "edge5", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge6 = scene.drawingNode.childNode(withName: "edge6", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge7 = scene.drawingNode.childNode(withName: "edge7", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge8 = scene.drawingNode.childNode(withName: "edge8", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge9 = scene.drawingNode.childNode(withName: "edge9", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge10 = scene.drawingNode.childNode(withName: "edge10", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge11 = scene.drawingNode.childNode(withName: "edge11", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge12 = scene.drawingNode.childNode(withName: "edge12", recursively: false) else{
+            print("not found")
+            return
+        }
+        edge1.removeFromParentNode()
+        edge2.removeFromParentNode()
+        edge3.removeFromParentNode()
+        edge4.removeFromParentNode()
+        edge5.removeFromParentNode()
+        edge6.removeFromParentNode()
+        edge7.removeFromParentNode()
+        edge8.removeFromParentNode()
+        edge9.removeFromParentNode()
+        edge10.removeFromParentNode()
+        edge11.removeFromParentNode()
+        edge12.removeFromParentNode()
+    }
+    
+    //changes color to yellow to visualize activated boundingBox
+    func colorEdgesYellow(){
+        guard let scene = self.currentScene else {return}
+        guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge2 = scene.drawingNode.childNode(withName: "edge2", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge3 = scene.drawingNode.childNode(withName: "edge3", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge4 = scene.drawingNode.childNode(withName: "edge4", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge5 = scene.drawingNode.childNode(withName: "edge5", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge6 = scene.drawingNode.childNode(withName: "edge6", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge7 = scene.drawingNode.childNode(withName: "edge7", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge8 = scene.drawingNode.childNode(withName: "edge8", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge9 = scene.drawingNode.childNode(withName: "edge9", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge10 = scene.drawingNode.childNode(withName: "edge10", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge11 = scene.drawingNode.childNode(withName: "edge11", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge12 = scene.drawingNode.childNode(withName: "edge12", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge1.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge2.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge3.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge4.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge5.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge6.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge7.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge8.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge9.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge10.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge11.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
+        edge12.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        
+    }
+    
+    //changes color to yellow to visualize activated boundingBox
+    func colorEdgesBlue(){
+        guard let scene = self.currentScene else {return}
+        guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge2 = scene.drawingNode.childNode(withName: "edge2", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge3 = scene.drawingNode.childNode(withName: "edge3", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge4 = scene.drawingNode.childNode(withName: "edge4", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge5 = scene.drawingNode.childNode(withName: "edge5", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge6 = scene.drawingNode.childNode(withName: "edge6", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge7 = scene.drawingNode.childNode(withName: "edge7", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge8 = scene.drawingNode.childNode(withName: "edge8", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge9 = scene.drawingNode.childNode(withName: "edge9", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge10 = scene.drawingNode.childNode(withName: "edge10", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge11 = scene.drawingNode.childNode(withName: "edge11", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge12 = scene.drawingNode.childNode(withName: "edge12", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        
+    }
+    
     //compute the diagonals to drag the corner along
     func lineBetweenNodes(positionA: SCNVector3, positionB: SCNVector3, inScene: SCNScene) -> SCNNode {
         let vector = SCNVector3(positionA.x - positionB.x, positionA.y - positionB.y, positionA.z - positionB.z)
@@ -158,10 +469,10 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
         let midPosition = SCNVector3 (x:(positionA.x + positionB.x) / 2, y:(positionA.y + positionB.y) / 2, z:(positionA.z + positionB.z) / 2)
 
         let lineGeometry = SCNCylinder()
-        lineGeometry.radius = 0.005
+        lineGeometry.radius = 0.001
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        //lineGeometry.firstMaterial!.diffuse.contents = UIColor.green
+        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemBlue
 
         let lineNode = SCNNode(geometry: lineGeometry)
         lineNode.opacity = 0.01
@@ -207,7 +518,54 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
             print("not found")
             return
         }
-
+        guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge2 = scene.drawingNode.childNode(withName: "edge2", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge3 = scene.drawingNode.childNode(withName: "edge3", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge4 = scene.drawingNode.childNode(withName: "edge4", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge5 = scene.drawingNode.childNode(withName: "edge5", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge6 = scene.drawingNode.childNode(withName: "edge6", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge7 = scene.drawingNode.childNode(withName: "edge7", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge8 = scene.drawingNode.childNode(withName: "edge8", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge9 = scene.drawingNode.childNode(withName: "edge9", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge10 = scene.drawingNode.childNode(withName: "edge10", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge11 = scene.drawingNode.childNode(withName: "edge11", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge12 = scene.drawingNode.childNode(withName: "edge12", recursively: false) else{
+            print("not found")
+            return
+        }
         let pressed = buttons[Button.Button1]!
         if (selected) {
         if pressed{
@@ -229,13 +587,11 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
 
                             if(tapped1){
                                 centerPosition = SCNVector3(x: corners.rfh.x - Float(updatedWidth/2), y: corners.rfh.y - Float(updatedHeight/2), z: corners.rfh.z - Float(updatedLength/2))
-                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                                 r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                                 r2d2.position = centerPosition
                             }
                             else if(tapped8){
                                 centerPosition = SCNVector3(x: corners.lbd.x + Float(updatedWidth/2), y: corners.lbd.y + Float(updatedHeight/2), z: corners.lbd.z + Float(updatedLength/2))
-                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                                 r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                                 r2d2.position = centerPosition
                             }
@@ -243,6 +599,9 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             //update Corners
                             setCorners()
                             setSpherePosition()
+                            removeAllEdges()
+                            setEdges()
+                            colorEdgesYellow()
                             
                             //update diagonals
                             if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -313,13 +672,11 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
 
                             if(tapped2){
                                 centerPosition = SCNVector3(x: corners.rbh.x - Float(updatedWidth/2), y: corners.rbh.y - Float(updatedHeight/2), z: corners.rbh.z + Float(updatedLength/2))
-                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                                 r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                                 r2d2.position = centerPosition
                             }
                             else if(tapped7){
                                 centerPosition = SCNVector3(x: corners.lfd.x + Float(updatedWidth/2), y: corners.lfd.y + Float(updatedHeight/2), z: corners.lfd.z - Float(updatedLength/2))
-                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                                 r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                                 r2d2.position = centerPosition
                             }
@@ -327,6 +684,9 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             //update Corners
                             setCorners()
                             setSpherePosition()
+                            removeAllEdges()
+                            setEdges()
+                            colorEdgesYellow()
                             
                             //update diagonals
                             if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -381,7 +741,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                 else if (tapped3 || tapped6){
                 let vecA = CGPoint(x:currentPoint.x - screenCorners.lfh.x, y:currentPoint.y - screenCorners.lfh.y)
                 let scalar2 = dotProduct(vecA: vecA , vecB: dirVector2)  / dotProduct(vecA: dirVector2, vecB: dirVector2)
-                let scaledDirVec = CGPoint(x: dirVector2.x * scalar2, y: dirVector3.y * scalar2)
+                let scaledDirVec = CGPoint(x: dirVector2.x * scalar2, y: dirVector2.y * scalar2)
                 let projectedPoint2 = CGPoint(x: screenCorners.lfh.x + scaledDirVec.x, y: screenCorners.lfh.y + scaledDirVec.y)
                 print("projection: \(projectedPoint2)")
                 var hitTestResult = sceneView.hitTest(projectedPoint2, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
@@ -395,13 +755,11 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
 
                         if(tapped3){
                             centerPosition = SCNVector3(x: corners.lfh.x + Float(updatedWidth/2), y: corners.lfh.y - Float(updatedHeight/2), z: corners.lfh.z - Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                             r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                             r2d2.position = centerPosition
                         }
                         else if(tapped6){
                             centerPosition = SCNVector3(x: corners.rbd.x - Float(updatedWidth/2), y: corners.rbd.y + Float(updatedHeight/2), z: corners.rbd.z + Float(updatedLength/2))
-                            box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                             r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                             r2d2.position = centerPosition
                         }
@@ -409,6 +767,9 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                         //updateCorners
                         setCorners()
                         setSpherePosition()
+                        removeAllEdges()
+                        setEdges()
+                        colorEdgesYellow()
 
                         if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
                             line1.removeFromParentNode()
@@ -477,13 +838,11 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
 
                             if(tapped4){
                                 centerPosition = SCNVector3(x: corners.lbh.x + Float(updatedWidth/2), y: corners.lbh.y - Float(updatedHeight/2), z: corners.lbh.z + Float(updatedLength/2))
-                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                                 r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
-                            r2d2.position = centerPosition
+                                r2d2.position = centerPosition
                             }
                             else if(tapped5){
                                 centerPosition = SCNVector3(x: corners.rfd.x - Float(updatedWidth/2), y: corners.rfd.y + Float(updatedHeight/2), z: corners.rfd.z - Float(updatedLength/2))
-                                box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                                 r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
                                 r2d2.position = centerPosition
                             }
@@ -491,6 +850,9 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                             //update corners
                             setCorners()
                             setSpherePosition()
+                            removeAllEdges()
+                            setEdges()
+                            colorEdgesYellow()
                             
                             //update diagonals
                             if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
@@ -608,8 +970,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped1 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                     box.position = corners.rfh
@@ -621,12 +982,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     tapped1 = false
                     selected = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     print("pivot1: \(box.pivot)")
                     print("position1: \(box.position)")
+                    return
                 }
             }
             //select:lfd --> pivot:rbh
@@ -641,8 +1002,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped2 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                     box.position = corners.rbh
@@ -654,12 +1014,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped2 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     print("pivot2: \(box.pivot)")
                     print("position2: \(box.position)")
+                    return
                 }
             }
             //select:rbd --> pivot:lfh
@@ -674,12 +1034,10 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped3 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                     box.position = corners.lfh
-                    
                     print("3pivot: \(box.pivot)")
                     print("3position: \(box.position)")
                 }
@@ -687,11 +1045,10 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped3 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    
+                    return
                     //print("3pivot: \(box.pivot)")
                     //print("3position: \(box.position)")
                 }
@@ -708,8 +1065,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped4 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
                     box.position = corners.lbh
@@ -721,12 +1077,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped4 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("4pivot: \(box.pivot)")
                     //print("4position: \(box.position)")
+                    return
                 }
             }
             //select:lbh --> pivot:rfd
@@ -741,8 +1097,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped5 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                     box.position = corners.rfd
@@ -754,12 +1109,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped5 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("5pivot: \(box.pivot)")
                     //print("5position: \(box.position)")
+                    return
                 }
             }
             //select:lfh --> pivot:rbd
@@ -775,8 +1130,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped6 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                     box.position = corners.rbd
@@ -788,12 +1142,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped6 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("6pivot: \(box.pivot)")
                     //print("6position: \(box.position)")
+                    return
                 }
             }
             //select:rbh --> pivot:lfd
@@ -808,8 +1162,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped7 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                     box.position = corners.lfd
@@ -821,12 +1174,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped7 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("7pivot: \(box.pivot)")
                     //print("7position: \(box.position)")
+                    return
                 }
             }
             //select:rfh --> pivot:lbd
@@ -841,8 +1194,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = true
                     tapped8 = true
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                    colorEdgesYellow()
                     //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                     box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                     box.position = corners.lbd
@@ -854,12 +1206,12 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
                     selected = false
                     tapped8 = false
                     hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                    box.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                    colorEdgesBlue()
                     box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
                     box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
                     //print("8pivot: \(box.pivot)")
                     //print("8position: \(box.position)")
+                    return
                 }
             }
             //only select the corners
@@ -892,34 +1244,17 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
         let OriginalMaxCorner = boundingBoxCorners.1
         let minCorner = SCNVector3(x:OriginalMinCorner.x*0.001,y:OriginalMinCorner.y*0.001,z:OriginalMinCorner.z*0.001)
         let maxCorner = SCNVector3(x:OriginalMaxCorner.x*0.001,y:OriginalMaxCorner.y*0.001,z:OriginalMaxCorner.z*0.001)
-        //print("maxCorner\(maxCorner)")
-        //print("minCorner\(minCorner)")
-
-        let sm = "float u = _surface.diffuseTexcoord.x; \n" +
-                 "float v = _surface.diffuseTexcoord.y; \n" +
-                 "int u100 = int(u * 100); \n" +
-                 "int v100 = int(v * 100); \n" +
-                 "if (u100 % 99 == 0 || v100 % 99 == 0) { \n" +
-                 "  // do nothing \n" +
-                 "} else { \n" +
-                 "    discard_fragment(); \n" +
-                 "} \n"
-        
+       
         originalWidth = CGFloat(maxCorner.x - minCorner.x)
         originalHeight = CGFloat(maxCorner.z - minCorner.z)
         originalLength = CGFloat(maxCorner.y - minCorner.y)
-        //print("width: \(originalWidth)")
-        //print("height: \(originalHeight)")
-        //print("length: \(originalLength)")
-        
+      
         self.updatedWidth = originalWidth
         self.updatedHeight = originalHeight
         self.updatedLength = originalLength
         
-        let box = SCNBox(width: originalWidth, height: originalHeight, length: originalLength, chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents  = UIColor.systemBlue
-        box.firstMaterial?.emission.contents = UIColor.systemBlue
-        box.firstMaterial?.shaderModifiers = [SCNShaderModifierEntryPoint.surface: sm]
+        let box = SCNBox(width: originalWidth*0.01, height: originalHeight*0.01, length: originalLength*0.01, chamferRadius: 0)
+        box.firstMaterial?.diffuse.contents = UIColor.green
         box.firstMaterial?.isDoubleSided = true
         let boundingBox = SCNNode(geometry: box)
         
@@ -928,7 +1263,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
             centerPosition = boundingBox.position
             print("position:\(boundingBox.position)")
             boundingBox.name = "currentBoundingBox"
-            boundingBox.opacity = 0.6
+            boundingBox.opacity = 0.1
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
@@ -937,6 +1272,7 @@ class TouchAndPenProjection: Plugin, UserStudyRecordPluginProtocol {
         }
         
         setCorners()
+        setEdges()
         //print("corners: \(corners)")
         
         //Visualize corners for Selection
