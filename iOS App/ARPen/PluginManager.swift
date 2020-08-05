@@ -91,3 +91,4 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
         self.paintPlugin.undoPreviousAction()
     }
 }
+

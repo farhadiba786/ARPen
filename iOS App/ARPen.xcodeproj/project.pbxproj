@@ -28,12 +28,13 @@
 		B42D3CA024CC922C00ABDD97 /* ScrollScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3C9F24CC922C00ABDD97 /* ScrollScalingPlugin.swift */; };
 		B42D3CA624CF0E1300ABDD97 /* DirectPenScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA524CF0E1300ABDD97 /* DirectPenScalingPlugin.swift */; };
 		B42D3CA824D018FE00ABDD97 /* TouchAndPenProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */; };
+		B4387F0C24DAACB30053DC68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B4387F0B24DAACB30053DC68 /* Main.storyboard */; };
 		B461850D24D0A28A00C88BE2 /* PenRayScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B461850C24D0A28A00C88BE2 /* PenRayScalingPlugin.swift */; };
 		DC18B2BC202384D700884920 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */; };
 		DC28B440200E4353008B77AB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B43F200E4353008B77AB /* AppDelegate.swift */; };
 		DC28B442200E4353008B77AB /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28B441200E4353008B77AB /* art.scnassets */; };
 		DC28B444200E4353008B77AB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B443200E4353008B77AB /* ViewController.swift */; };
-		DC28B447200E4353008B77AB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DC28B445200E4353008B77AB /* Main.storyboard */; };
+		DC28B447200E4353008B77AB /* Main.storyboard1 in Resources */ = {isa = PBXBuildFile; fileRef = DC28B445200E4353008B77AB /* Main.storyboard1 */; };
 		DC28B449200E4353008B77AB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28B448200E4353008B77AB /* Assets.xcassets */; };
 		DC28B44C200E4353008B77AB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DC28B44A200E4353008B77AB /* LaunchScreen.storyboard */; };
 		DC28B454200E4389008B77AB /* ARManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B453200E4389008B77AB /* ARManager.swift */; };
@@ -96,13 +97,14 @@
 		B42D3C9F24CC922C00ABDD97 /* ScrollScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollScalingPlugin.swift; sourceTree = "<group>"; };
 		B42D3CA524CF0E1300ABDD97 /* DirectPenScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPenScalingPlugin.swift; sourceTree = "<group>"; };
 		B42D3CA724D018FE00ABDD97 /* TouchAndPenProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenProjection.swift; sourceTree = "<group>"; };
+		B4387F0B24DAACB30053DC68 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		B461850C24D0A28A00C88BE2 /* PenRayScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayScalingPlugin.swift; sourceTree = "<group>"; };
 		DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
 		DC28B43C200E4353008B77AB /* ARPen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARPen.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC28B43F200E4353008B77AB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DC28B441200E4353008B77AB /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
 		DC28B443200E4353008B77AB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		DC28B446200E4353008B77AB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		DC28B446200E4353008B77AB /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Base; path = Base.lproj/Main.storyboard1; sourceTree = "<group>"; };
 		DC28B448200E4353008B77AB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC28B44B200E4353008B77AB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DC28B44D200E4353008B77AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -214,7 +216,8 @@
 				EA0C795822F0787300E820E8 /* UserStudySetup */,
 				DC28B477200E6640008B77AB /* Extensions */,
 				DC28B45D200E4476008B77AB /* OpenCV */,
-				DC28B445200E4353008B77AB /* Main.storyboard */,
+				DC28B445200E4353008B77AB /* Main.storyboard1 */,
+				B4387F0B24DAACB30053DC68 /* Main.storyboard */,
 				DC28B448200E4353008B77AB /* Assets.xcassets */,
 				DC28B441200E4353008B77AB /* art.scnassets */,
 				DC28B44A200E4353008B77AB /* LaunchScreen.storyboard */,
@@ -350,9 +353,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC28B442200E4353008B77AB /* art.scnassets in Resources */,
+				B4387F0C24DAACB30053DC68 /* Main.storyboard in Resources */,
 				DC28B44C200E4353008B77AB /* LaunchScreen.storyboard in Resources */,
 				DC28B449200E4353008B77AB /* Assets.xcassets in Resources */,
-				DC28B447200E4353008B77AB /* Main.storyboard in Resources */,
+				DC28B447200E4353008B77AB /* Main.storyboard1 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -414,12 +418,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		DC28B445200E4353008B77AB /* Main.storyboard */ = {
+		DC28B445200E4353008B77AB /* Main.storyboard1 */ = {
 			isa = PBXVariantGroup;
 			children = (
 				DC28B446200E4353008B77AB /* Base */,
 			);
-			name = Main.storyboard;
+			name = Main.storyboard1;
 			sourceTree = "<group>";
 		};
 		DC28B44A200E4353008B77AB /* LaunchScreen.storyboard */ = {

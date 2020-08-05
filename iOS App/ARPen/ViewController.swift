@@ -26,9 +26,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
     @IBOutlet var arSceneView: ARSCNView!
     @IBOutlet weak var pluginMenuScrollView: UIScrollView!
     @IBOutlet weak var imageForPluginInstructions: UIImageView!
-    @IBOutlet weak var pluginInstructionsLookupButton: UIButton!
     @IBOutlet weak var settingsButton: UIButton!
     @IBOutlet weak var undoButton: UIButton!
+    @IBOutlet weak var confirmButton: UIButton!
+    @IBOutlet weak var softwarePenButton: UIButton!
+    @IBOutlet weak var toggleButton: UIButton!
+    
     
     let menuButtonHeight = 70
     let menuButtonPadding = 5
@@ -50,18 +53,19 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.pluginInstructionsLookupButton.layer.masksToBounds = true
-        self.pluginInstructionsLookupButton.layer.cornerRadius = self.pluginInstructionsLookupButton.frame.width/2
-        
         self.settingsButton.layer.masksToBounds = true
         self.settingsButton.layer.cornerRadius = self.settingsButton.frame.width/2
         
         self.undoButton.layer.masksToBounds = true
         self.undoButton.layer.cornerRadius = self.undoButton.frame.width/2
         
-        self.undoButton.isHidden = false
+        self.undoButton.isHidden = true
         self.undoButton.isEnabled = true
         
+        //self.toggleButton.isHidden = true
+        
+        self.softwarePenButton.isHidden = true
+        self.pluginMenuScrollView.isHidden = true
         // Create a new scene
         let scene = PenScene(named: "art.scnassets/ship.scn")!
         scene.markerBox = MarkerBox()
@@ -203,7 +207,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
             displayPluginInstructions(forPluginID: pluginID)
         } else {
             self.imageForPluginInstructions.isHidden = true
-            self.pluginInstructionsLookupButton.isHidden = false
         }
         
     }
@@ -241,8 +244,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         }
         currentActivePluginID = pluginID
         
-        // Enable/disable undo button based on current plugin
-        self.undoButton.isHidden = currentActivePluginID == 1 ? false : true
+        /*// Enable/disable undo button based on current plugin
+        self.undoButton.isHidden = currentActivePluginID == 1 ? false : true*/
     }
     
     // Display the instructions for plugin by setting imageForPluginInstructions
@@ -261,7 +264,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         self.imageForPluginInstructions.alpha = 0.75
         self.imageForPluginInstructions.isHidden = false
         
-        self.pluginInstructionsLookupButton.isHidden = true
     }
     
     @objc func imageForPluginInstructionsTapped(_ tapGestureRecognizer: UITapGestureRecognizer) {
@@ -269,11 +271,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         self.pluginManager.pluginInstructionsCanBeHidden[self.currentActivePluginID-1] = true
         
         tappedImage.isHidden = true
-        self.pluginInstructionsLookupButton.isHidden = false
     }
     
     @IBAction func showPluginInstructions(_ sender: Any) {
-        self.displayPluginInstructions(forPluginID: self.currentActivePluginID)        
+        self.displayPluginInstructions(forPluginID: self.currentActivePluginID)
     }
     
     /**
@@ -362,8 +363,20 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
     @IBAction func softwarePenButtonReleased(_ sender: Any) {
         self.pluginManager.button(.Button1, pressed: false)
     }
-    
-    @IBAction func undoButtonPressed(_ sender: Any) {
-        self.pluginManager.undoPreviousStep()
+    @IBAction func confirmButtonPressed(_ sender: Any) {
+        self.pluginManager.button(.confirmButton, pressed: true)
     }
+    
+/*    @IBAction func confirmButtonReleased(_ sender: Any) {
+        self.pluginManager.button(.confirmButton, pressed: false)
+    }*/
+    
+    @IBAction func toggleButtonPressed(_ sender: Any) {
+        if (self.pluginMenuScrollView.isHidden == false){
+            self.pluginMenuScrollView.isHidden = true
+        }else{
+            self.pluginMenuScrollView.isHidden = false
+        }
+    }
+    
 }
