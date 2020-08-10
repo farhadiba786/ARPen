@@ -42,6 +42,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
      The PluginManager instance
      */
     var pluginManager: PluginManager!
+    var pinchScale: PinchScaling!
     
     //Manager for user study data
     let userStudyRecordManager = UserStudyRecordManager()
@@ -59,19 +60,22 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         self.undoButton.layer.masksToBounds = true
         self.undoButton.layer.cornerRadius = self.undoButton.frame.width/2
         
-        self.undoButton.isHidden = true
+        self.undoButton.isHidden = false
         self.undoButton.isEnabled = true
         
-        //self.toggleButton.isHidden = true
+        self.toggleButton.isHidden = true
         
-        self.softwarePenButton.isHidden = true
-        self.pluginMenuScrollView.isHidden = true
+        //addLongPressGesture()
+        
+        self.softwarePenButton.isHidden = false
+        self.pluginMenuScrollView.isHidden = false
         // Create a new scene
         let scene = PenScene(named: "art.scnassets/ship.scn")!
         scene.markerBox = MarkerBox()
         self.arSceneView.pointOfView?.addChildNode(scene.markerBox)
         
         self.pluginManager = PluginManager(scene: scene)
+        self.pinchScale = PinchScaling()
         self.pluginManager.delegate = self
         self.arSceneView.session.delegate = self.pluginManager.arManager
         
@@ -96,6 +100,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         } else {
             print("Record manager was not set up in App Delegate")
         }
+        
+        /*// Create a session configuration
+        let configuration = ARWorldTrackingConfiguration()
+        
+        // Track image target
+        if let referenceImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) {
+            configuration.detectionImages = referenceImages
+            print("RESET TRACKING")
+        }
+        
+        arSceneView.session.run(configuration)*/
     }
     
     /**
@@ -160,6 +175,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
             
             let titleLabel = UILabel(frame: titleLabelFrame)
             titleLabel.text = plugin.pluginIdentifier
+            titleLabel.adjustsFontSizeToFitWidth = true
             titleLabel.font = UIFont.init(name: "Helvetica", size: 14)
             titleLabel.textAlignment = .center
             titleLabel.baselineAdjustment = .alignCenters
@@ -364,11 +380,30 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         self.pluginManager.button(.Button1, pressed: false)
     }
     @IBAction func confirmButtonPressed(_ sender: Any) {
-        self.pluginManager.button(.confirmButton, pressed: true)
+        self.pluginManager.button(.ConfirmButton, pressed: true)
+        print("baum")
     }
     
-/*    @IBAction func confirmButtonReleased(_ sender: Any) {
-        self.pluginManager.button(.confirmButton, pressed: false)
+    @IBAction func confirmButtonReleased(_ sender: Any) {
+        self.pluginManager.button(.ConfirmButton, pressed: false)
+    }
+    @IBAction func undoButtonReleased(_ sender: Any) {
+        self.pluginManager.button(.UndoButton, pressed: false)
+    }
+    @IBAction func undoButtonPressed(_ sender: Any) {
+        self.pluginManager.button(.UndoButton, pressed: true)
+    }
+
+    /*@objc func pressLong(gesture: UILongPressGestureRecognizer) {
+        if gesture.state == UIGestureRecognizerState.began {
+            print("Long Press")
+        }
+    }
+
+    func addLongPressGesture(){
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(pressLong(gesture:)))
+        longPress.minimumPressDuration = 1.5
+        self.confirmButton.addGestureRecognizer(longPress)
     }*/
     
     @IBAction func toggleButtonPressed(_ sender: Any) {

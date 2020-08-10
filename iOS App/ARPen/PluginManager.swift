@@ -21,8 +21,9 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
 
     var arManager: ARManager
     var arPenManager: PenManager
-    var buttons: [Button: Bool] = [.Button1: false, .Button2: false, .Button3: false]
+    var buttons: [Button: Bool] = [.Button1: false, .Button2: false, .Button3: false, .ConfirmButton:false, .UndoButton: false]
     var paintPlugin: PaintPlugin
+    var pinchPlugin: PinchScaling
     var plugins: [Plugin]
     var pluginInstructionsCanBeHidden: [Bool]
     var activePlugin: Plugin?
@@ -34,7 +35,8 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
      */
     init(scene: PenScene) {
         self.paintPlugin = PaintPlugin()
-        self.plugins = [PinchScalingPlugin(), PointScalingPlugin(),  DirectPenScalingPlugin(), PenRayScalingPlugin(), TouchAndPenProjection(), ScrollScalingPlugin()]
+        self.pinchPlugin = PinchScaling()
+        self.plugins = [PinchScalingTest(), PointScalingTest(), DirectPenScalingTest(), PenRayScalingTest(), TouchAndPenScalingTest(), ScrollScalingTest(), PinchScaling(), PointScaling(), DirectPenScaling(), PenRayScaling(), TouchAndPenScaling(), ScrollScaling()]
         //self.plugins = [PenRayProjection()]
         self.pluginInstructionsCanBeHidden = Array(repeating: false, count: self.plugins.count)
         self.experimentalPluginsStartAtIndex = 7
@@ -90,5 +92,6 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
         // Todo: Add undo functionality for all plugins.
         self.paintPlugin.undoPreviousAction()
     }
+
 }
 

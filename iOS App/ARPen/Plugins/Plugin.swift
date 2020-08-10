@@ -22,7 +22,7 @@ protocol Plugin {
     var currentView : ARSCNView? {get set}
     
     var pluginInstructionsImage: UIImage? { get }
-    var pluginDisabledImage: UIImage? { get } 
+    var pluginDisabledImage: UIImage? { get }
     /**
      This method must be implemented by all protocols.
      Params:
