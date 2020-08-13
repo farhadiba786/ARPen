@@ -12,12 +12,18 @@ protocol PluginManagerDelegate {
     func arKitInitialiazed()
     func penConnected()
     func penFailed()
+    
+    //used for PinchScalingtPlugin
+    func hideSettings()
+    func showSettings()
+    func hidePlugins()
+    func showPlugins()
 }
 
 /**
  The PluginManager holds every plugin that is used. Furthermore the PluginManager holds the AR- and PenManager.
  */
-class PluginManager: ARManagerDelegate, PenManagerDelegate {
+class PluginManager: ARManagerDelegate, PenManagerDelegate{
 
     var arManager: ARManager
     var arPenManager: PenManager
@@ -28,25 +34,43 @@ class PluginManager: ARManagerDelegate, PenManagerDelegate {
     var activePlugin: Plugin?
     var delegate: PluginManagerDelegate?
     var experimentalPluginsStartAtIndex: Int
+    var allowPluginChange = true
+    /*var scrollScalingPlugin = ScrollScalingPlugin()
+    var directPenScalingPlugin = DirectPenScalingPlugin()
+    var penRayScalingPlugin = PenRayScalingPlugin()
+    var touchAndPenScalingPlugin = TouchAndPenScalingPlugin()
+    var pointScalingPlugin = PointScalingPlugin()*/
     
     /**
      inits every plugin
      */
     init(scene: PenScene) {
         self.paintPlugin = PaintPlugin()
-        self.plugins = [paintPlugin, CubeByDraggingPlugin(), SphereByDraggingPlugin(), CylinderByDraggingPlugin(), PyramidByDraggingPlugin(), CubeByExtractionPlugin(), ARMenusPlugin(), TranslationDemoPlugin(), CombinationPlugin(), ModelingPlugin(), SweepPluginProfileAndPath(), SweepPluginTwoProfiles(), LoftPlugin(), RevolvePluginProfileAndAxis(), RevolvePluginProfileAndCircle(), RevolvePluginTwoProfiles(), CombinePluginFunction(), CombinePluginSolidHole()]
+        self.plugins = [PinchScalingPlugin(), ScrollScalingPlugin(), DirectPenScalingPlugin(), PenRayScalingPlugin(), TouchAndPenScalingPlugin(), PointScalingPlugin() ]
         self.pluginInstructionsCanBeHidden = Array(repeating: true, count: self.plugins.count)
         self.experimentalPluginsStartAtIndex = 7
-        
         
         self.arManager = ARManager(scene: scene)
         self.arPenManager = PenManager()
         self.activePlugin = plugins.first
         self.arManager.delegate = self
         self.arPenManager.delegate = self
+        //scrollScalingPlugin.delegate = self
+        //directPenScalingPlugin.delegate = self
+        //penRayScalingPlugin.delegate = self
+        //touchAndPenScalingPlugin.delegate = self
+        //pointScalingPlugin.delegate = self
         
         //listen to softwarePenButton notifications
         NotificationCenter.default.addObserver(self, selector: #selector(self.softwareButtonEvent(_:)), name: .softwarePenButtonEvent, object: nil)
+    }
+    
+    func pluginsLocked() -> Bool{
+        return !self.allowPluginChange
+    }
+    
+    func setPluginsLocked(locked: Bool){
+        self.allowPluginChange = !locked
     }
     
     /**

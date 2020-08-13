@@ -45,7 +45,7 @@ class PaintPlugin: Plugin {
             }
         }
     }
-    
+
     override func didUpdateFrame(scene: PenScene, buttons: [Button : Bool]) {
         guard scene.markerFound else {
             //Don't reset the previous point to avoid disconnected lines if the marker detection failed for some frames

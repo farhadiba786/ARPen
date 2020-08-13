@@ -59,9 +59,27 @@
 		4AAC4B2D23A37D17003B6E83 /* RevolvePluginProfileAndAxis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAC4B2723A37D16003B6E83 /* RevolvePluginProfileAndAxis.swift */; };
 		4AC711C7204EDCBE00CD4239 /* SettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC711C6204EDCBE00CD4239 /* SettingsTableViewController.swift */; };
 		4AC711C9204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC711C8204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift */; };
-		4ACE473324659B450037F9EE /* PositionFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ACE473224659B450037F9EE /* PositionFilter.swift */; };
 		AA93510A224245CE002AEB00 /* ARMenusPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA935109224245CE002AEB00 /* ARMenusPlugin.swift */; };
 		AA93510C2242460D002AEB00 /* ARMenusSupportFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA93510B2242460D002AEB00 /* ARMenusSupportFile.swift */; };
+		B458337324E2981F003F3415 /* PinchScaling.xib in Resources */ = {isa = PBXBuildFile; fileRef = B458337224E2981F003F3415 /* PinchScaling.xib */; };
+		B458337524E2AC4B003F3415 /* ScrollScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458337424E2AC4B003F3415 /* ScrollScalingPlugin.swift */; };
+		B458337724E2ACC8003F3415 /* DirectPenScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458337624E2ACC8003F3415 /* DirectPenScalingPlugin.swift */; };
+		B458337924E2ACD3003F3415 /* PenRayScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458337824E2ACD3003F3415 /* PenRayScalingPlugin.swift */; };
+		B458337B24E2ACE0003F3415 /* TouchAndPenScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458337A24E2ACDF003F3415 /* TouchAndPenScalingPlugin.swift */; };
+		B458337D24E2ACEC003F3415 /* PointScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458337C24E2ACEC003F3415 /* PointScalingPlugin.swift */; };
+		B458338024E2ADA3003F3415 /* PinchScalingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458337F24E2ADA3003F3415 /* PinchScalingTest.swift */; };
+		B458338224E2ADAF003F3415 /* ScrollScalingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458338124E2ADAF003F3415 /* ScrollScalingTest.swift */; };
+		B458338424E2ADBB003F3415 /* DirectPenScalingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458338324E2ADBB003F3415 /* DirectPenScalingTest.swift */; };
+		B458338624E2ADC5003F3415 /* PenRayScalingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458338524E2ADC5003F3415 /* PenRayScalingTest.swift */; };
+		B458338824E2ADD4003F3415 /* TouchAndPenScalingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458338724E2ADD4003F3415 /* TouchAndPenScalingTest.swift */; };
+		B458338A24E2ADE1003F3415 /* PointScalingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458338924E2ADE1003F3415 /* PointScalingTest.swift */; };
+		B458339424E30AF9003F3415 /* UserStudyPlugin.xib in Resources */ = {isa = PBXBuildFile; fileRef = B458339324E30AF9003F3415 /* UserStudyPlugin.xib */; };
+		B458339824E336CA003F3415 /* UserStudyPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B458339724E336CA003F3415 /* UserStudyPlugin.swift */; };
+		B49ADDCE24E5669800493A92 /* DirectPenScalingPlugin.xib in Resources */ = {isa = PBXBuildFile; fileRef = B49ADDCD24E5669800493A92 /* DirectPenScalingPlugin.xib */; };
+		B49ADDD024E5685900493A92 /* PinchScalingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49ADDCF24E5685900493A92 /* PinchScalingPlugin.swift */; };
+		B4F7192F24E4772800F3B35D /* PinchScalingUserPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F7192E24E4772800F3B35D /* PinchScalingUserPlugin.swift */; };
+		B4F7193124E477B600F3B35D /* PinchScalingPlugin.xib in Resources */ = {isa = PBXBuildFile; fileRef = B4F7193024E477B600F3B35D /* PinchScalingPlugin.xib */; };
+		B4F7193724E4B3C100F3B35D /* ScrollScalingPlugin.xib in Resources */ = {isa = PBXBuildFile; fileRef = B4F7193624E4B3C100F3B35D /* ScrollScalingPlugin.xib */; };
 		DC18B2BC202384D700884920 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */; };
 		DC28B440200E4353008B77AB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC28B43F200E4353008B77AB /* AppDelegate.swift */; };
 		DC28B442200E4353008B77AB /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = DC28B441200E4353008B77AB /* art.scnassets */; };
@@ -165,9 +183,27 @@
 		4AC0B97D226F2B3F001B591D /* ARPen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ARPen.entitlements; sourceTree = "<group>"; };
 		4AC711C6204EDCBE00CD4239 /* SettingsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTableViewController.swift; sourceTree = "<group>"; };
 		4AC711C8204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceListTableViewController.swift; sourceTree = "<group>"; };
-		4ACE473224659B450037F9EE /* PositionFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionFilter.swift; sourceTree = "<group>"; };
 		AA935109224245CE002AEB00 /* ARMenusPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARMenusPlugin.swift; sourceTree = "<group>"; };
 		AA93510B2242460D002AEB00 /* ARMenusSupportFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARMenusSupportFile.swift; sourceTree = "<group>"; };
+		B458337224E2981F003F3415 /* PinchScaling.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PinchScaling.xib; sourceTree = "<group>"; };
+		B458337424E2AC4B003F3415 /* ScrollScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollScalingPlugin.swift; sourceTree = "<group>"; };
+		B458337624E2ACC8003F3415 /* DirectPenScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPenScalingPlugin.swift; sourceTree = "<group>"; };
+		B458337824E2ACD3003F3415 /* PenRayScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayScalingPlugin.swift; sourceTree = "<group>"; };
+		B458337A24E2ACDF003F3415 /* TouchAndPenScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenScalingPlugin.swift; sourceTree = "<group>"; };
+		B458337C24E2ACEC003F3415 /* PointScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointScalingPlugin.swift; sourceTree = "<group>"; };
+		B458337F24E2ADA3003F3415 /* PinchScalingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchScalingTest.swift; sourceTree = "<group>"; };
+		B458338124E2ADAF003F3415 /* ScrollScalingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollScalingTest.swift; sourceTree = "<group>"; };
+		B458338324E2ADBB003F3415 /* DirectPenScalingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPenScalingTest.swift; sourceTree = "<group>"; };
+		B458338524E2ADC5003F3415 /* PenRayScalingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PenRayScalingTest.swift; sourceTree = "<group>"; };
+		B458338724E2ADD4003F3415 /* TouchAndPenScalingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchAndPenScalingTest.swift; sourceTree = "<group>"; };
+		B458338924E2ADE1003F3415 /* PointScalingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointScalingTest.swift; sourceTree = "<group>"; };
+		B458339324E30AF9003F3415 /* UserStudyPlugin.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UserStudyPlugin.xib; sourceTree = "<group>"; };
+		B458339724E336CA003F3415 /* UserStudyPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStudyPlugin.swift; sourceTree = "<group>"; };
+		B49ADDCD24E5669800493A92 /* DirectPenScalingPlugin.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DirectPenScalingPlugin.xib; sourceTree = "<group>"; };
+		B49ADDCF24E5685900493A92 /* PinchScalingPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchScalingPlugin.swift; sourceTree = "<group>"; };
+		B4F7192E24E4772800F3B35D /* PinchScalingUserPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchScalingUserPlugin.swift; sourceTree = "<group>"; };
+		B4F7193024E477B600F3B35D /* PinchScalingPlugin.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PinchScalingPlugin.xib; sourceTree = "<group>"; };
+		B4F7193624E4B3C100F3B35D /* ScrollScalingPlugin.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ScrollScalingPlugin.xib; path = ../ScrollScalingPlugin.xib; sourceTree = "<group>"; };
 		DC18B2BB202384D700884920 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
 		DC28B43C200E4353008B77AB /* ARPen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARPen.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC28B43F200E4353008B77AB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -223,6 +259,11 @@
 			children = (
 				4A27E28023A0F9E300C4BF75 /* CubeByExtractionPlugin.xib */,
 				4AAC4B1823A27FC4003B6E83 /* AllButtonsAndUndo.xib */,
+				B458337224E2981F003F3415 /* PinchScaling.xib */,
+				B458339324E30AF9003F3415 /* UserStudyPlugin.xib */,
+				B4F7193024E477B600F3B35D /* PinchScalingPlugin.xib */,
+				B4F7193624E4B3C100F3B35D /* ScrollScalingPlugin.xib */,
+				B49ADDCD24E5669800493A92 /* DirectPenScalingPlugin.xib */,
 			);
 			path = PluginUIs;
 			sourceTree = "<group>";
@@ -286,6 +327,7 @@
 		4AAC4AF423A24A3F003B6E83 /* Util */ = {
 			isa = PBXGroup;
 			children = (
+				4AAC4AD923A24A1F003B6E83 /* Modeling */,
 				4AAC4AF523A24A3F003B6E83 /* ButtonEvents.swift */,
 				4AAC4AF623A24A3F003B6E83 /* TaskScenes.swift */,
 				4AAC4AF723A24A3F003B6E83 /* Arranger.swift */,
@@ -342,6 +384,33 @@
 			path = BooleanOperationPlugins;
 			sourceTree = "<group>";
 		};
+		B458336F24E29692003F3415 /* RecordPlugins */ = {
+			isa = PBXGroup;
+			children = (
+				B4F7192E24E4772800F3B35D /* PinchScalingUserPlugin.swift */,
+				B49ADDCF24E5685900493A92 /* PinchScalingPlugin.swift */,
+				B458337424E2AC4B003F3415 /* ScrollScalingPlugin.swift */,
+				B458337624E2ACC8003F3415 /* DirectPenScalingPlugin.swift */,
+				B458337824E2ACD3003F3415 /* PenRayScalingPlugin.swift */,
+				B458337A24E2ACDF003F3415 /* TouchAndPenScalingPlugin.swift */,
+				B458337C24E2ACEC003F3415 /* PointScalingPlugin.swift */,
+			);
+			path = RecordPlugins;
+			sourceTree = "<group>";
+		};
+		B458337E24E2AD8F003F3415 /* TestPlugins */ = {
+			isa = PBXGroup;
+			children = (
+				B458337F24E2ADA3003F3415 /* PinchScalingTest.swift */,
+				B458338124E2ADAF003F3415 /* ScrollScalingTest.swift */,
+				B458338324E2ADBB003F3415 /* DirectPenScalingTest.swift */,
+				B458338524E2ADC5003F3415 /* PenRayScalingTest.swift */,
+				B458338724E2ADD4003F3415 /* TouchAndPenScalingTest.swift */,
+				B458338924E2ADE1003F3415 /* PointScalingTest.swift */,
+			);
+			path = TestPlugins;
+			sourceTree = "<group>";
+		};
 		DC18B2B820237A7200884920 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -385,7 +454,6 @@
 				DC28B46C200E4E6E008B77AB /* MarkerBox.swift */,
 				DC28B462200E471F008B77AB /* PluginManager.swift */,
 				DC28B476200E64C0008B77AB /* Plugins */,
-				4AAC4AD923A24A1F003B6E83 /* Modeling */,
 				4A56953520581AF300C8065E /* UserStudyData */,
 				EA0C795822F0787300E820E8 /* UserStudySetup */,
 				DC28B477200E6640008B77AB /* Extensions And Helpers */,
@@ -415,6 +483,9 @@
 			children = (
 				DC28B460200E46DC008B77AB /* Plugin.swift */,
 				DC28B466200E4BF1008B77AB /* PaintPlugin.swift */,
+				B458339724E336CA003F3415 /* UserStudyPlugin.swift */,
+				B458336F24E29692003F3415 /* RecordPlugins */,
+				B458337E24E2AD8F003F3415 /* TestPlugins */,
 				DC28B474200E64B7008B77AB /* ObjectCreationPlugin.swift */,
 				4A895F092052791100CC2C8E /* CubeByDraggingPlugin.swift */,
 				4A895F0B2052D46000CC2C8E /* CubeByExtractionPlugin.swift */,
@@ -445,7 +516,6 @@
 				4A27E27C239FCEA800C4BF75 /* NotificationName.swift */,
 				4A27E27E239FF36D00C4BF75 /* PassthroughView.swift */,
 				4AAC4B1223A24C29003B6E83 /* DateExtensions.swift */,
-				4ACE473224659B450037F9EE /* PositionFilter.swift */,
 			);
 			path = "Extensions And Helpers";
 			sourceTree = "<group>";
@@ -492,12 +562,12 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = "RWTH Aachen";
 				TargetAttributes = {
 					DC28B43B200E4353008B77AB = {
 						CreatedOnToolsVersion = 9.2;
-						LastSwiftMigration = 1130;
+						LastSwiftMigration = 0920;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.iCloud = {
@@ -530,10 +600,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4F7193724E4B3C100F3B35D /* ScrollScalingPlugin.xib in Resources */,
 				DC28B442200E4353008B77AB /* art.scnassets in Resources */,
 				4A27E28123A0F9E300C4BF75 /* CubeByExtractionPlugin.xib in Resources */,
+				B458337324E2981F003F3415 /* PinchScaling.xib in Resources */,
+				B458339424E30AF9003F3415 /* UserStudyPlugin.xib in Resources */,
 				DC28B44C200E4353008B77AB /* LaunchScreen.storyboard in Resources */,
+				B4F7193124E477B600F3B35D /* PinchScalingPlugin.xib in Resources */,
 				DC28B449200E4353008B77AB /* Assets.xcassets in Resources */,
+				B49ADDCE24E5669800493A92 /* DirectPenScalingPlugin.xib in Resources */,
 				4AAC4B1923A27FC4003B6E83 /* AllButtonsAndUndo.xib in Resources */,
 				DC28B447200E4353008B77AB /* Main.storyboard in Resources */,
 			);
@@ -568,13 +643,13 @@
 			files = (
 				4AAC4B0C23A24A6E003B6E83 /* OCCT.mm in Sources */,
 				DC28B461200E46DC008B77AB /* Plugin.swift in Sources */,
-				4ACE473324659B450037F9EE /* PositionFilter.swift in Sources */,
 				E983D24622ABEDBB0000B8D5 /* SphereByDraggingPlugin.swift in Sources */,
 				EA0C796122F078EE00E820E8 /* ARPenGridSceneConstructor.swift in Sources */,
 				4A56953B20581B9000C8065E /* UserStudyRecordPluginProtocol.swift in Sources */,
 				4AAC4B0D23A24A6E003B6E83 /* Builders.mm in Sources */,
 				4A895F0A2052791100CC2C8E /* CubeByDraggingPlugin.swift in Sources */,
 				4AAC4AFB23A24A3F003B6E83 /* TaskScenes.swift in Sources */,
+				B458337D24E2ACEC003F3415 /* PointScalingPlugin.swift in Sources */,
 				4A5695342058195200C8065E /* UserStudyRecordsListTableViewController.swift in Sources */,
 				DC28B45F200E4561008B77AB /* PenManager.swift in Sources */,
 				EA0C796222F078EE00E820E8 /* ARPenWireBoxNode.swift in Sources */,
@@ -587,6 +662,7 @@
 				4AC711C9204FDCE800CD4239 /* BluetoothDeviceListTableViewController.swift in Sources */,
 				4AAC4AEC23A24A20003B6E83 /* ARPBox.swift in Sources */,
 				4A27E27F239FF36D00C4BF75 /* PassthroughView.swift in Sources */,
+				B458338824E2ADD4003F3415 /* TouchAndPenScalingTest.swift in Sources */,
 				4AAC4B2823A37D17003B6E83 /* CombinePluginFunction.swift in Sources */,
 				DC18B2BC202384D700884920 /* UserDefaultsKeys.swift in Sources */,
 				E983D24A22ABFE680000B8D5 /* PyramidByDraggingPlugin.swift in Sources */,
@@ -596,6 +672,7 @@
 				4AAC4B1B23A28600003B6E83 /* SweepPluginProfileAndPath.swift in Sources */,
 				4AAC4B2C23A37D17003B6E83 /* RevolvePluginProfileAndCircle.swift in Sources */,
 				4AAC4B0A23A24A6E003B6E83 /* Helpers.mm in Sources */,
+				B458338424E2ADBB003F3415 /* DirectPenScalingTest.swift in Sources */,
 				4AAC4AEE23A24A20003B6E83 /* ARPSweep.swift in Sources */,
 				AA93510A224245CE002AEB00 /* ARMenusPlugin.swift in Sources */,
 				4A59BA1E2244E66D00EA23E7 /* TranslationDemoPlugin.swift in Sources */,
@@ -608,20 +685,27 @@
 				4AAC4B1F23A29189003B6E83 /* SweepPluginTutorial.swift in Sources */,
 				4AAC4B2A23A37D17003B6E83 /* RevolvePluginTwoProfiles.swift in Sources */,
 				4AAC4AF323A24A20003B6E83 /* OCCTAPI.swift in Sources */,
+				B458338024E2ADA3003F3415 /* PinchScalingTest.swift in Sources */,
 				AA93510C2242460D002AEB00 /* ARMenusSupportFile.swift in Sources */,
 				4AAC4B2123A2949E003B6E83 /* CombinePluginTutorial.swift in Sources */,
 				4AAC4AEB23A24A20003B6E83 /* ARPRevolution.swift in Sources */,
+				B458338224E2ADAF003F3415 /* ScrollScalingTest.swift in Sources */,
 				4A27E27D239FCEA800C4BF75 /* NotificationName.swift in Sources */,
 				EA0C796322F078EE00E820E8 /* ARPenDropTargetNode.swift in Sources */,
 				4AAC4AE923A24A20003B6E83 /* ARPSphere.swift in Sources */,
+				B458338A24E2ADE1003F3415 /* PointScalingTest.swift in Sources */,
+				B458337B24E2ACE0003F3415 /* TouchAndPenScalingPlugin.swift in Sources */,
 				4AAC4AFE23A24A3F003B6E83 /* TaskTimeLogger.swift in Sources */,
 				4AAC4B2923A37D17003B6E83 /* LoftPlugin.swift in Sources */,
 				4AAC4AFA23A24A3F003B6E83 /* ButtonEvents.swift in Sources */,
 				4A895F0C2052D46000CC2C8E /* CubeByExtractionPlugin.swift in Sources */,
 				DC28B454200E4389008B77AB /* ARManager.swift in Sources */,
 				4A5695322058192B00C8065E /* UserStudyIDListTableViewController.swift in Sources */,
+				B458337724E2ACC8003F3415 /* DirectPenScalingPlugin.swift in Sources */,
+				B49ADDD024E5685900493A92 /* PinchScalingPlugin.swift in Sources */,
 				4A56953720581B4500C8065E /* UserStudyRecord.swift in Sources */,
 				4AAC4AF023A24A20003B6E83 /* ARPLoft.swift in Sources */,
+				B458337924E2ACD3003F3415 /* PenRayScalingPlugin.swift in Sources */,
 				DC28B475200E64B7008B77AB /* ObjectCreationPlugin.swift in Sources */,
 				4AAC4B0B23A24A6E003B6E83 /* Meshing.mm in Sources */,
 				DC28B473200E6025008B77AB /* SCNVector3Extensions.swift in Sources */,
@@ -629,14 +713,18 @@
 				DC28B440200E4353008B77AB /* AppDelegate.swift in Sources */,
 				DC28B463200E471F008B77AB /* PluginManager.swift in Sources */,
 				DC28B467200E4BF1008B77AB /* PaintPlugin.swift in Sources */,
+				B458337524E2AC4B003F3415 /* ScrollScalingPlugin.swift in Sources */,
 				E983D24822ABF3830000B8D5 /* CylinderByDraggingPlugin.swift in Sources */,
+				B4F7192F24E4772800F3B35D /* PinchScalingUserPlugin.swift in Sources */,
 				EA0C795F22F078EE00E820E8 /* ARPenStudyNode.swift in Sources */,
 				4AC711C7204EDCBE00CD4239 /* SettingsTableViewController.swift in Sources */,
 				DC28B46B200E4C78008B77AB /* Button.swift in Sources */,
 				4AAC4AED23A24A20003B6E83 /* ARPNode.swift in Sources */,
 				4AAC4B2D23A37D17003B6E83 /* RevolvePluginProfileAndAxis.swift in Sources */,
+				B458339824E336CA003F3415 /* UserStudyPlugin.swift in Sources */,
 				EA0C796022F078EE00E820E8 /* ARPenSceneConstructor.swift in Sources */,
 				4AAC4AFD23A24A3F003B6E83 /* CurveDesigner.swift in Sources */,
+				B458338624E2ADC5003F3415 /* PenRayScalingTest.swift in Sources */,
 				4AAC4AFC23A24A3F003B6E83 /* Arranger.swift in Sources */,
 				DC28B471200E592C008B77AB /* DegreesToRadians.swift in Sources */,
 				4AAC4B1D23A290FE003B6E83 /* SweepPluginTwoProfiles.swift in Sources */,
@@ -680,7 +768,6 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -688,7 +775,6 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -739,7 +825,6 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -747,7 +832,6 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -796,7 +880,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "ARPen/ARPen-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -819,7 +903,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "de.rwth-aachen.hci.arpen";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "ARPen/ARPen-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;

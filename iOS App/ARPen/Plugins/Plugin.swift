@@ -13,6 +13,7 @@ import ARKit
  */
 class Plugin: NSObject {
     
+    
     var pluginImage : UIImage?
     var pluginIdentifier : String = "ARPen Plugin"
     
@@ -52,6 +53,10 @@ class Plugin: NSObject {
         
     }
     
+    func reset(){
+        
+    }
+    
     func activatePlugin(withScene scene: PenScene, andView view: ARSCNView){
         self.currentScene = scene
         self.currentView = view
@@ -59,5 +64,6 @@ class Plugin: NSObject {
     func deactivatePlugin(){
         self.currentScene = nil
         self.currentView = nil
+        
     }
 }

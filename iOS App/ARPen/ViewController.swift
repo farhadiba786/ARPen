@@ -26,10 +26,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
     @IBOutlet var arSceneView: ARSCNView!
     @IBOutlet weak var pluginMenuScrollView: UIScrollView!
     @IBOutlet weak var imageForPluginInstructions: UIImageView!
-    @IBOutlet weak var pluginInstructionsLookupButton: UIButton!
     @IBOutlet weak var settingsButton: UIButton!
-    @IBOutlet weak var undoButton: UIButton!
     @IBOutlet weak var viewForCustomPluginView: UIView!
+    @IBOutlet weak var toggleButton: UIButton!
+    @IBOutlet weak var softwarePenButton: UIButton!
     
     let menuButtonHeight = 70
     let menuButtonPadding = 5
@@ -51,17 +51,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.pluginInstructionsLookupButton.layer.masksToBounds = true
-        self.pluginInstructionsLookupButton.layer.cornerRadius = self.pluginInstructionsLookupButton.frame.width/2
-        
         self.settingsButton.layer.masksToBounds = true
         self.settingsButton.layer.cornerRadius = self.settingsButton.frame.width/2
         
-        self.undoButton.layer.masksToBounds = true
-        self.undoButton.layer.cornerRadius = self.undoButton.frame.width/2
-        
-        self.undoButton.isHidden = false
-        self.undoButton.isEnabled = true
+        self.softwarePenButton.isHidden = true
         
         // Create a new scene
         let scene = PenScene(named: "art.scnassets/ship.scn")!
@@ -74,6 +67,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         
         self.arSceneView.autoenablesDefaultLighting = true
         self.arSceneView.pointOfView?.name = "iDevice Camera"
+        self.arSceneView.showsStatistics = false
+        self.arSceneView.delegate = self
         
         // Set the scene to the view
         arSceneView.scene = scene
@@ -204,7 +199,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
             displayPluginInstructions(forPluginID: pluginID)
         } else {
             self.imageForPluginInstructions.isHidden = true
-            self.pluginInstructionsLookupButton.isHidden = false
         }
         
     }
@@ -247,9 +241,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
             }
         }
         currentActivePluginID = pluginID
+       
         
-        // Enable/disable undo button based on current plugin
-        self.undoButton.isHidden = currentActivePluginID == 1 ? false : true
     }
     
     // Display the instructions for plugin by setting imageForPluginInstructions
@@ -267,8 +260,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         
         self.imageForPluginInstructions.alpha = 0.75
         self.imageForPluginInstructions.isHidden = false
-        
-        self.pluginInstructionsLookupButton.isHidden = true
     }
     
     @objc func imageForPluginInstructionsTapped(_ tapGestureRecognizer: UITapGestureRecognizer) {
@@ -276,7 +267,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         self.pluginManager.pluginInstructionsCanBeHidden[self.currentActivePluginID-1] = true
         
         tappedImage.isHidden = true
-        self.pluginInstructionsLookupButton.isHidden = false
     }
     
     @IBAction func showPluginInstructions(_ sender: Any) {
@@ -303,6 +293,25 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         
     }
     
+    func hideSettings() {
+        print("Hiding Settings - Currently disabled")
+        //self.settingsButton.isHidden = true
+    }
+    
+    func showSettings() {
+        print("Showing Settings - Currently disabled")
+        //self.settingsButton.isHidden = false
+    }
+    
+    func hidePlugins() {
+        print("Hiding Plugins")
+        self.pluginMenuScrollView.isHidden = true
+    }
+    
+    func showPlugins() {
+        print("Showing Plugins")
+        self.pluginMenuScrollView.isHidden = false
+    }
     
     // Mark: - ARManager Delegate
     /**
@@ -378,7 +387,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, PluginManagerDelegate
         NotificationCenter.default.post(name: .softwarePenButtonEvent, object: nil, userInfo: buttonEventDict)
     }
     
-    @IBAction func undoButtonPressed(_ sender: Any) {
-        self.pluginManager.undoPreviousStep()
+    
+    @IBAction func toggle(_ sender: Any) {
+        if (self.pluginMenuScrollView.isHidden == false){
+            self.pluginMenuScrollView.isHidden = true
+        }else{
+            self.pluginMenuScrollView.isHidden = false
+        }
     }
+    
 }
