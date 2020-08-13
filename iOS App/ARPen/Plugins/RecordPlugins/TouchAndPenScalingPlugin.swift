@@ -15,9 +15,18 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     //reference to userStudyRecordManager to add new records
     var recordManager: UserStudyRecordManager!
 
+    private var recStarted :Bool = false
+    private var finished :Bool = false
+    private var training :Bool = false
+    
+    var confirmPressed : Bool = false
+    var undoPressed : Bool = false
+    
+    //Gesture Recognizer
     var tapGesture : UITapGestureRecognizer?
     var currentPoint = CGPoint()
-    
+    var scaleFactor : Float = 0
+
     //Variables for bounding Box updates
     var centerPosition = SCNVector3()
     var updatedWidth : Float = 0
@@ -25,8 +34,10 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var updatedLength : Float = 0
     //l = left, r = right, b = back, f = front, d = down, h = high
     var corners : (lbd : SCNVector3, lfd : SCNVector3, rbd : SCNVector3, rfd : SCNVector3, lbh : SCNVector3, lfh : SCNVector3, rbh : SCNVector3, rfh : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0))
+    
     var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
-     var edges : (e1 : SCNVector3, e2 : SCNVector3, e3 : SCNVector3, e4 : SCNVector3, e5 : SCNVector3, e6 : SCNVector3, e7 : SCNVector3, e8 : SCNVector3, e9 : SCNVector3, e10 : SCNVector3, e11 : SCNVector3, e12 : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0))
+    
+    var edges : (e1 : SCNVector3, e2 : SCNVector3, e3 : SCNVector3, e4 : SCNVector3, e5 : SCNVector3, e6 : SCNVector3, e7 : SCNVector3, e8 : SCNVector3, e9 : SCNVector3, e10 : SCNVector3, e11 : SCNVector3, e12 : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0))
 
     //Variables to ensure only one Corner an be selected at a time
     var selectedCorner = SCNNode()
@@ -39,12 +50,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var tapped6 : Bool = false
     var tapped7 : Bool = false
     var tapped8 : Bool = false
-    
-    //Variables for text
-    var widthIncmStr : String = ""
-    var heightIncmStr : String = ""
-    var lengthIncmStr : String = ""
-    
+
     //Corner Variables for diagonals
     var next_rfh = SCNVector3()
     var next_lbd = SCNVector3()
@@ -58,23 +64,40 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var dirVector2 = CGPoint()
     var dirVector3 = CGPoint()
     var dirVector4 = CGPoint()
-
-    //Variables For USER STUDY TASK
-    var userStudyReps = 0
-
+    
     //variables for initial bounding Box
     var originalWidth : Float = 0
     var originalHeight : Float = 0
     var originalLength : Float = 0
+    var originalScale = SCNVector3()
+    
+    //Variables for text
+    var widthIncmStr : String = ""
+    var heightIncmStr : String = ""
+    var lengthIncmStr : String = ""
+
+    //Variables For USER STUDY TASK
+    var userStudyReps = 0
+    var selectionCounter = 0
 
     //variables for measuring
     var finalWidth : Float = 0
     var finalHeight : Float = 0
     var finalLength : Float = 0
+    
+    var randomValue: String = ""
+    var target = String()
+    
     var startTime : Date = Date()
     var endTime : Date = Date()
     var elapsedTime: Double = 0.0
     
+    @IBOutlet weak var undoButton: UIButton!
+    @IBOutlet weak var confirmButton: UIButton!
+    @IBOutlet weak var recordingButton: UIButton!
+    @IBOutlet weak var targetLabel: UILabel!
+    @IBOutlet weak var headingLabel: UILabel!
+    @IBOutlet weak var instructLabel: UILabel!
     override init() {
         super.init()
     
@@ -83,10 +106,101 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.pluginIdentifier = "Touch&Pen"
         self.needsBluetoothARPen = false
         self.pluginDisabledImage = UIImage.init(named: "ARMenusPluginDisabled")
-        
+        nibNameOfCustomUIView = "TouchAndPenScalingPlugin"
         
         }
     
+    override func reset(){
+        guard let scene = self.currentScene else {return}
+        guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
+            print("not found")
+            return
+           }
+           guard let r2d2 = scene.drawingNode.childNode(withName: "currentr2d2", recursively: false) else{
+               print("not found")
+               return
+           }
+            guard let text1 = scene.drawingNode.childNode(withName: "widthString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text2 = scene.drawingNode.childNode(withName: "heightString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text3 = scene.drawingNode.childNode(withName: "lengthString", recursively: false) else{
+              print("not found")
+              return
+             }
+           guard let sceneView = self.currentView else { return }
+        
+            //reset box and model
+            selected = false
+            tapped1 = false
+            tapped2 = false
+            tapped3 = false
+            tapped4 = false
+            tapped5 = false
+            tapped6 = false
+            tapped7 = false
+            tapped8 = false
+
+            //compute random width/height/length users should scale the object to
+            let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+            let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+            let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+            
+            //Vary between width/ height/length
+            let randomTarget = Int.random(in: 1...3)
+            if randomTarget == 1{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Width: \(randomWidth)"
+                    self.target = "width"
+                    self.randomValue = randomWidth
+                }
+            }
+            if randomTarget == 2{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Height: \(randomHeight)"
+                    self.target = "height"
+                    self.randomValue = randomHeight
+                }
+            }
+            if randomTarget == 3{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Length: \(randomLength)"
+                    self.target = "length"
+                    self.randomValue = randomLength
+                }
+            }
+        
+            selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            colorEdgesBlue()
+            
+            updatedWidth = originalWidth
+            updatedHeight = originalHeight
+            updatedLength = originalLength
+            
+            box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+            box.position = SCNVector3(0,0,-0.3)
+            centerPosition = box.position
+            box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
+            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.position = box.position
+            
+            setCorners()
+            setSpherePosition()
+            removeAllEdges()
+            setEdges()
+            
+            text1.opacity = 0.01
+            text2.opacity = 0.01
+            text3.opacity = 0.01
+            //measurement variables
+            selectionCounter = 0
+            elapsedTime = 0.0
+    }
+
     //need to adjust the corners while scaling visually
     func setSpherePosition(){
         guard let scene = self.currentScene else {return}
@@ -326,85 +440,6 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     }
     
     //changes color to yellow to visualize activated boundingBox
-    func colorEdgesYellow(){
-        guard let scene = self.currentScene else {return}
-        guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge2 = scene.drawingNode.childNode(withName: "edge2", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge3 = scene.drawingNode.childNode(withName: "edge3", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge4 = scene.drawingNode.childNode(withName: "edge4", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge5 = scene.drawingNode.childNode(withName: "edge5", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge6 = scene.drawingNode.childNode(withName: "edge6", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge7 = scene.drawingNode.childNode(withName: "edge7", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge8 = scene.drawingNode.childNode(withName: "edge8", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge9 = scene.drawingNode.childNode(withName: "edge9", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge10 = scene.drawingNode.childNode(withName: "edge10", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge11 = scene.drawingNode.childNode(withName: "edge11", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let edge12 = scene.drawingNode.childNode(withName: "edge12", recursively: false) else{
-            print("not found")
-            return
-        }
-        
-        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge1.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge2.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge3.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge4.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge5.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge6.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge7.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge8.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge9.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge10.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge11.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge12.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        
-    }
-    
-    //changes color to yellow to visualize activated boundingBox
     func colorEdgesBlue(){
         guard let scene = self.currentScene else {return}
         guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
@@ -483,6 +518,54 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
     }
     
+    //changes color to yellow to visualize activated boundingBox
+    func colorCornersBlue(){
+        guard let scene = self.currentScene else {return}
+        guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner2 = scene.drawingNode.childNode(withName: "lfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner3 = scene.drawingNode.childNode(withName: "rbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner4 = scene.drawingNode.childNode(withName: "rfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner5 = scene.drawingNode.childNode(withName: "lbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner6 = scene.drawingNode.childNode(withName: "lfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner7 = scene.drawingNode.childNode(withName: "rbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner8 = scene.drawingNode.childNode(withName: "rfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        corner1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+       
+        
+    }
+    
     //compute the diagonals to drag the corner along
     func lineBetweenNodes(positionA: SCNVector3, positionB: SCNVector3, inScene: SCNScene) -> SCNNode {
         let vector = SCNVector3(positionA.x - positionB.x, positionA.y - positionB.y, positionA.z - positionB.z)
@@ -493,7 +576,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         lineGeometry.radius = 0.001
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemBlue
+        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemOrange
 
         let lineNode = SCNNode(geometry: lineGeometry)
         lineNode.opacity = 0.01
@@ -505,7 +588,817 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     func dotProduct(vecA: CGPoint, vecB: CGPoint)-> CGFloat{
         return (vecA.x * vecB.x + vecA.y * vecB.y)
     }
+    
+    //function for selecting objects via touchscreen
+    @objc func handleTap(_ sender: UITapGestureRecognizer){
+        guard let scene = self.currentScene else {return}
+        guard let sceneView = self.currentView else { return }
+        guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner2 = scene.drawingNode.childNode(withName: "lfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner3 = scene.drawingNode.childNode(withName: "rbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner4 = scene.drawingNode.childNode(withName: "rfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner5 = scene.drawingNode.childNode(withName: "lbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner6 = scene.drawingNode.childNode(withName: "lfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner7 = scene.drawingNode.childNode(withName: "rbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner8 = scene.drawingNode.childNode(withName: "rfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let r2d2 = scene.drawingNode.childNode(withName: "currentr2d2", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let text1 = scene.drawingNode.childNode(withName: "widthString", recursively: false) else{
+          print("not found")
+          return
+         }
+        guard let text2 = scene.drawingNode.childNode(withName: "heightString", recursively: false) else{
+          print("not found")
+          return
+         }
+        guard let text3 = scene.drawingNode.childNode(withName: "lengthString", recursively: false) else{
+          print("not found")
+          return
+         }
+        
+        let touchPoint = sender.location(in: sceneView)
 
+        var hitResults = sceneView.hitTest(touchPoint, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
+        
+        //Selecting a corner will select the box
+        for hit in hitResults{
+            let widthIncmStr = String(format: "%.2f",updatedWidth*100)
+            let heightIncmStr = String(format: "%.2f",updatedHeight*100)
+            let lengthIncmStr = String(format: "%.2f",updatedLength*100)
+            //select:lbd --> pivot:rfh
+            if hit.node == corner1 {
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner1
+                    tapped1 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
+                    box.position = corners.rfh
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e12.x - 0.025 , y:edges.e12.y - 0.015, z:edges.e12.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e6.x - 0.06, y:edges.e6.y + 0.05, z:edges.e6.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
+                    }
+                    
+                }
+                else if selected == true && tapped1{
+                    tapped1 = false
+                    selected = false
+                    selectedCorner = SCNNode()
+                    
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped1{
+                    tapped1 = true
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
+                    box.position = corners.rfh
+                    selectedCorner = corner1
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e12.x - 0.025 , y:edges.e12.y - 0.015, z:edges.e12.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e6.x - 0.06, y:edges.e6.y, z:edges.e6.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
+                    }
+                }
+            }
+            //select:lfd --> pivot:rbh
+            else if hit.node == corner2{
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner2
+                    tapped2 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
+                    box.position = corners.rbh
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
+                        text1.opacity = 1
+                    }
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y, z:edges.e2.z)
+                    }
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
+                    }
+                }
+                else if selected == true && tapped2{
+                    selected = false
+                    tapped2 = false
+                    selectedCorner = SCNNode()
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    print("pivot2: \(box.pivot)")
+                    print("position2: \(box.position)")
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped2{
+                    tapped1 = false
+                    tapped2 = true
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
+                    box.position = corners.rbh
+                    selectedCorner = corner2
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
+                        text1.opacity = 1
+                    }
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y, z:edges.e2.z)
+                    }
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
+                    }
+                }
+            }
+            //select:rbd --> pivot:lfh
+            else if hit.node == corner3 {
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner3
+                    tapped3 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
+                    box.position = corners.lfh
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e12.x-0.025, y:edges.e12.y - 0.015, z:edges.e12.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y, z:edges.e10.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
+                    }
+                    
+                }
+                else if selected == true && tapped3{
+                    selected = false
+                    tapped3 = false
+                    selectedCorner = SCNNode()
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped3{
+                    tapped1 = false
+                    tapped2 = false
+                    tapped3 = true
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
+                    box.position = corners.lfh
+                    selectedCorner = corner3
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e12.x-0.025, y:edges.e12.y - 0.015, z:edges.e12.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y, z:edges.e10.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
+                    }
+                }
+            }
+            //select:rfd --> pivot:lbh
+            else if hit.node == corner4 {
+                if selected == false{
+                    selected = true
+                    print("corner4:\(selected)")
+                    selectedCorner = corner4
+                    tapped4 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
+                    box.position = corners.lbh
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e4.x  + 0.01 , y:edges.e4.y, z:edges.e4.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
+                    }
+                }
+                else if selected == true && tapped4{
+                    selected = false
+                    tapped4 = false
+                    selectedCorner = SCNNode()
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped4{
+                    tapped1 = false
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = true
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
+                    box.position = corners.lbh
+                    selectedCorner = corner4
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e4.x  + 0.01 , y:edges.e4.y, z:edges.e4.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
+                    }
+                }
+            }
+            //select:lbh --> pivot:rfd
+            else if hit.node == corner5{
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner5
+                    tapped5 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
+                    box.position = corners.rfd
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e6.x - 0.06 , y:edges.e6.y - 0.01, z:edges.e6.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
+                    }
+                }
+                else if selected == true && tapped5{
+                    selected = false
+                    tapped5 = false
+                    selectedCorner = SCNNode()
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped5{
+                    tapped1 = false
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = true
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
+                    box.position = corners.rfd
+                    selectedCorner = corner5
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e6.x - 0.06 , y:edges.e6.y - 0.01, z:edges.e6.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
+                    }
+                }
+            }
+            //select:lfh --> pivot:rbd
+            else if hit.node == corner6{
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner6
+                    tapped6 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
+                    box.position = corners.rbd
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y - 0.01, z:edges.e2.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
+                    }
+                }
+                else if selected == true  && tapped6{
+                    selected = false
+                    tapped6 = false
+                    selectedCorner = SCNNode()
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped6{
+                    tapped1 = false
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = true
+                    tapped7 = false
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
+                    box.position = corners.rbd
+                    selectedCorner = corner6
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
+                        text1.opacity = 1
+                    }
+                    
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y - 0.01, z:edges.e2.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
+                    }
+                }
+            }
+            //select:rbh --> pivot:lfd
+            else if hit.node == corner7 {
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner7
+                    tapped7 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
+                    box.position = corners.lfd
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
+                        text1.opacity = 1
+                    }
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y - 0.01, z:edges.e10.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
+                    }
+                    
+                }
+                else if selected == true && tapped7{
+                    selected = false
+                    selectedCorner = SCNNode()
+                    tapped7 = false
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped7{
+                    tapped1 = false
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = true
+                    tapped8 = false
+                    
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
+                    box.position = corners.lfd
+                    selectedCorner = corner7
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
+                        text1.opacity = 1
+                    }
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y - 0.01, z:edges.e10.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
+                    }
+                }
+            }
+            //select:rfh --> pivot:lbd
+            else if hit.node == corner8 {
+                if selected == false{
+                    selected = true
+                    selectedCorner = corner8
+                    tapped8 = true
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    //colorEdgesYellow()
+                    box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
+                    box.position = corners.lbd
+                    
+                    if selectionCounter == 0{
+                        startTime = Date()
+                    }
+
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
+                        text1.opacity = 1
+                    }
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e4.x+0.01, y:edges.e4.y, z:edges.e4.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
+                    }
+                }
+                else if selected == true && tapped8{
+                    selected = false
+                    tapped8 = false
+                    selectedCorner = SCNNode()
+                    if training{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    //colorEdgesBlue()
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    
+                    //in case task is ended at this point record endTime
+                    endTime = Date()
+                    return
+                }
+                else if selected == true && !tapped8{
+                    tapped1 = false
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = true
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
+                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
+                    box.position = corners.lbd
+                    selectedCorner = corner8
+                    
+                    if let textGeometry1 = text1.geometry as? SCNText {
+                        textGeometry1.string = "W:\(widthIncmStr)cm"
+                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
+                        text1.opacity = 1
+                    }
+                    if let textGeometry2 = text2.geometry as? SCNText {
+                        textGeometry2.string = "H:\(heightIncmStr)cm"
+                        text2.opacity = 1
+                        text2.position = SCNVector3(x:edges.e4.x+0.01, y:edges.e4.y, z:edges.e4.z)
+                    }
+                    
+                    if let textGeometry3 = text3.geometry as? SCNText {
+                        textGeometry3.string = "L:\(lengthIncmStr)cm"
+                        text3.opacity = 1
+                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
+                    }
+                }
+            }
+            //only select the corners
+            else{
+                if let index = hitResults.firstIndex(of: hit) {
+                    hitResults.remove(at: index)
+                }
+            }
+        }
+    }
+    
     override func didUpdateFrame(scene: PenScene, buttons: [Button : Bool]) {
         setScreenCorners()
         //define initial diagonals
@@ -671,7 +1564,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdgesYellow()
+                            colorEdgesBlue()
                             
                             //update diagonals
                             if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -791,7 +1684,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdgesYellow()
+                            colorEdgesBlue()
                             
                             //update diagonals
                             if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -912,7 +1805,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         setSpherePosition()
                         removeAllEdges()
                         setEdges()
-                        colorEdgesYellow()
+                        colorEdgesBlue()
 
                         if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
                             line1.removeFromParentNode()
@@ -1033,7 +1926,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdgesYellow()
+                            colorEdgesBlue()
                             
                             //update diagonals
                             if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
@@ -1086,790 +1979,88 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 }
             }
         }
-    }
-    
-    //function for selecting objects via touchscreen
-    @objc func handleTap(_ sender: UITapGestureRecognizer){
-        guard let scene = self.currentScene else {return}
-        guard let sceneView = self.currentView else { return }
-        guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner2 = scene.drawingNode.childNode(withName: "lfdCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner3 = scene.drawingNode.childNode(withName: "rbdCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner4 = scene.drawingNode.childNode(withName: "rfdCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner5 = scene.drawingNode.childNode(withName: "lbhCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner6 = scene.drawingNode.childNode(withName: "lfhCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner7 = scene.drawingNode.childNode(withName: "rbhCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let corner8 = scene.drawingNode.childNode(withName: "rfhCorner", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let r2d2 = scene.drawingNode.childNode(withName: "currentr2d2", recursively: false) else{
-            print("not found")
-            return
-        }
-        guard let text1 = scene.drawingNode.childNode(withName: "widthString", recursively: false) else{
-          print("not found")
-          return
-         }
-        guard let text2 = scene.drawingNode.childNode(withName: "heightString", recursively: false) else{
-          print("not found")
-          return
-         }
-        guard let text3 = scene.drawingNode.childNode(withName: "lengthString", recursively: false) else{
-          print("not found")
-          return
-         }
         
-        let touchPoint = sender.location(in: sceneView)
-
-        var hitResults = sceneView.hitTest(touchPoint, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
-        
-        //Selecting a corner will select the box
-        for hit in hitResults{
-            let widthIncmStr = String(format: "%.2f",updatedWidth*100)
-            let heightIncmStr = String(format: "%.2f",updatedHeight*100)
-            let lengthIncmStr = String(format: "%.2f",updatedLength*100)
-            //select:lbd --> pivot:rfh
-            if hit.node == corner1 {
-                if selected == false{
-                    /*print("1centerPosition:\(centerPosition)")
-                    print("1updatedHeight: \(updatedHeight)")
-                    print("1updatedWidth: \(updatedWidth)")
-                    print("1updatedLength: \(updatedLength)")
-                    print("1cornersMethod: \(corners)")*/
+        if recStarted && selected{
+            if userStudyReps < 6{
+                if confirmPressed{
                     
-                    selected = true
-                    selectedCorner = corner1
-                    tapped1 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
-                    box.position = corners.rfh
+                    elapsedTime = endTime.timeIntervalSince(startTime)
                     
-                    print("pivot1: \(box.pivot)")
-                    print("position1: \(box.position)")
+                    self.recordManager.addNewRecord(withIdentifier: self.pluginIdentifier, andData: [
+                    "timestamp" : "\(Date().millisecondsSince1970)",
+                    "userStudyReps" : "\(userStudyReps)",
+                    "originalWidth": "\(originalWidth)",
+                    "originalHeight": "\(originalHeight)",
+                    "originalLength": "\(originalLength)",
+                    "finalWidthExact" : "\(updatedWidth)",
+                    "finalHeightExact" : "\(updatedHeight)",
+                    "finalLengthExact" : "\(updatedLength)",
+                    "finalWidthRounded" : "\(widthIncmStr)",
+                    "finalHeightRounded" : "\(heightIncmStr)",
+                    "finalLengthRounded" : "\(lengthIncmStr)",
+                    "scaleFactor": "\(scaleFactor)",
+                    "number of scale attempts": "\(selectionCounter)",
+                    "selectedCorner" : "\(String(describing:selectedCorner.name))",
+                    "target side to scale": "\(target)",
+                    "target size:": "\(randomValue)",
+                    "task time" : "\(elapsedTime)"
+                    ])
                     
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e12.x - 0.025 , y:edges.e12.y - 0.015, z:edges.e12.z)
-                        text1.opacity = 1
-                    }
+                    print("timestamp: ", Date().millisecondsSince1970)
+                    print("userStudyReps: ", userStudyReps)
+                    print("selection counter: ", selectionCounter)
+                    print("finalWidthExact :", updatedWidth)
+                    print("finalHeightExact: ", updatedHeight)
+                    print("finalLengthExact: ", updatedLength)
+                    print("finalWidthRounded: ", widthIncmStr)
+                    print("finalHeightRounded: ", heightIncmStr)
+                    print("finalLengthRounded: ", lengthIncmStr)
+                    print("numberOfSelections: ", selectionCounter)
+                    print("scaleFactor: ", scaleFactor)
+                    print("time: ", elapsedTime)
+                    print("selectedCorner: ", selectedCorner.name)
+                    print("target side to scale", target)
+                    print("target size:", randomValue)
                     
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e6.x - 0.06, y:edges.e6.y + 0.05, z:edges.e6.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
-                    }
-                    
+                    userStudyReps += 1
+                    confirmPressed = false
+                    reset()
                 }
-                else if selected == true && tapped1{
-                    tapped1 = false
-                    selected = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    print("pivot1: \(box.pivot)")
-                    print("position1: \(box.position)")
-                    
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
+                if undoPressed{
+                    reset()
                 }
-                else if selected == true && !tapped1{
-                    tapped1 = true
-                    tapped2 = false
-                    tapped3 = false
-                    tapped4 = false
-                    tapped5 = false
-                    tapped6 = false
-                    tapped7 = false
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
-                    box.position = corners.rfh
-                    selectedCorner = corner1
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e12.x - 0.025 , y:edges.e12.y - 0.015, z:edges.e12.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e6.x - 0.06, y:edges.e6.y + 0.05, z:edges.e6.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
-                    }
-                }
-            }
-            //select:lfd --> pivot:rbh
-            else if hit.node == corner2{
-                if selected == false{
-                   /* print("2centerPosition:\(centerPosition)")
-                    print("2updatedHeight: \(updatedHeight)")
-                    print("2updatedWidth: \(updatedWidth)")
-                    print("2updatedLength: \(updatedLength)")
-                    print("2cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner2
-                    tapped2 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
-                    box.position = corners.rbh
-                    
-                    print("pivot2: \(box.pivot)")
-                    print("position2: \(box.position)")
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
-                        text1.opacity = 1
-                    }
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y, z:edges.e2.z)
-                    }
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
-                    }
-                }
-                else if selected == true && tapped2{
-                    selected = false
-                    tapped2 = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    print("pivot2: \(box.pivot)")
-                    print("position2: \(box.position)")
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                }
-                else if selected == true && !tapped2{
-                    tapped1 = false
-                    tapped2 = true
-                    tapped3 = false
-                    tapped4 = false
-                    tapped5 = false
-                    tapped6 = false
-                    tapped7 = false
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
-                    box.position = corners.rbh
-                    selectedCorner = corner2
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
-                        text1.opacity = 1
-                    }
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y, z:edges.e2.z)
-                    }
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e5.x - 0.06 , y:edges.e5.y, z:edges.e5.z)
-                    }
-                }
-            }
-            //select:rbd --> pivot:lfh
-            else if hit.node == corner3 {
-                if selected == false{
-                    /*print("3centerPosition:\(centerPosition)")
-                    print("3updatedHeight: \(updatedHeight)")
-                    print("3updatedWidth: \(updatedWidth)")
-                    print("3updatedLength: \(updatedLength)")
-                    print("3cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner3
-                    tapped3 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
-                    box.position = corners.lfh
-                    print("3pivot: \(box.pivot)")
-                    print("3position: \(box.position)")
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e12.x-0.025, y:edges.e12.y - 0.015, z:edges.e12.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y, z:edges.e10.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
-                    }
-                    
-                }
-                else if selected == true && tapped3{
-                    selected = false
-                    tapped3 = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                    //print("3pivot: \(box.pivot)")
-                    //print("3position: \(box.position)")
-                }
-                else if selected == true && !tapped3{
-                    tapped1 = false
-                    tapped2 = false
-                    tapped3 = true
-                    tapped4 = false
-                    tapped5 = false
-                    tapped6 = false
-                    tapped7 = false
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
-                    box.position = corners.lfh
-                    selectedCorner = corner3
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e12.x-0.025, y:edges.e12.y - 0.015, z:edges.e12.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y, z:edges.e10.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
-                    }
-                }
-            }
-            //select:rfd --> pivot:lbh
-            else if hit.node == corner4 {
-                if selected == false{
-
-                    /*print("4centerPosition:\(centerPosition)")
-                    print("4updatedHeight: \(updatedHeight)")
-                    print("4updatedWidth: \(updatedWidth)")
-                    print("4updatedLength: \(updatedLength)")
-                    print("4cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner4
-                    tapped4 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
-                    box.position = corners.lbh
-                    
-                    print("4pivot: \(box.pivot)")
-                    print("4position: \(box.position)")
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e4.x  + 0.01 , y:edges.e4.y, z:edges.e4.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
-                    }
-                }
-                else if selected == true && tapped4{
-                    selected = false
-                    tapped4 = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    //print("4pivot: \(box.pivot)")
-                    //print("4position: \(box.position)")
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                }
-                else if selected == true && !tapped4{
-                    tapped1 = false
-                    tapped2 = false
-                    tapped3 = false
-                    tapped4 = true
-                    tapped5 = false
-                    tapped6 = false
-                    tapped7 = false
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
-                    box.position = corners.lbh
-                    selectedCorner = corner4
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e4.x  + 0.01 , y:edges.e4.y, z:edges.e4.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e11.x + 0.01 , y:edges.e11.y, z:edges.e11.z)
-                    }
-                }
-            }
-            //select:lbh --> pivot:rfd
-            else if hit.node == corner5{
-                if selected == false{
-
-                    /*print("5centerPosition:\(centerPosition)")
-                    print("5updatedHeight: \(updatedHeight)")
-                    print("5updatedWidth: \(updatedWidth)")
-                    print("5updatedLength: \(updatedLength)")
-                    print("5cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner5
-                    tapped5 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
-                    box.position = corners.rfd
-                    
-                    print("5pivot: \(box.pivot)")
-                    print("5position: \(box.position)")
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e6.x - 0.06 , y:edges.e6.y - 0.01, z:edges.e6.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
-                    }
-                }
-                else if selected == true && tapped5{
-                    selected = false
-                    tapped5 = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                }
-                else if selected == true && !tapped5{
-                    tapped1 = false
-                    tapped2 = false
-                    tapped3 = false
-                    tapped4 = false
-                    tapped5 = true
-                    tapped6 = false
-                    tapped7 = false
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
-                    box.position = corners.rfd
-                    selectedCorner = corner5
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e6.x - 0.06 , y:edges.e6.y - 0.01, z:edges.e6.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
-                    }
-                }
-            }
-            //select:lfh --> pivot:rbd
-            else if hit.node == corner6{
-                if selected == false{
-
-                   /*print("6centerPosition:\(centerPosition)")
-                    print("6updatedHeight: \(updatedHeight)")
-                    print("6updatedWidth: \(updatedWidth)")
-                    print("6updatedLength: \(updatedLength)")
-                    print("6cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner6
-                    tapped6 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
-                    box.position = corners.rbd
-                    
-                    print("6pivot: \(box.pivot)")
-                    print("6position: \(box.position)")
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y - 0.01, z:edges.e2.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
-                    }
-                }
-                else if selected == true  && tapped6{
-                    selected = false
-                    tapped6 = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                }
-                else if selected == true && !tapped6{
-                    tapped1 = false
-                    tapped2 = false
-                    tapped3 = false
-                    tapped4 = false
-                    tapped5 = false
-                    tapped6 = true
-                    tapped7 = false
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
-                    box.position = corners.rbd
-                    selectedCorner = corner6
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
-                        text1.opacity = 1
-                    }
-                    
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e2.x - 0.06, y:edges.e2.y - 0.01, z:edges.e2.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e7.x - 0.06, y:edges.e7.y, z:edges.e7.z)
-                    }
-                }
-            }
-            //select:rbh --> pivot:lfd
-            else if hit.node == corner7 {
-                if selected == false{
-                    /*print("7centerPosition:\(centerPosition)")
-                    print("7updatedHeight: \(updatedHeight)")
-                    print("7updatedWidth: \(updatedWidth)")
-                    print("7updatedLength: \(updatedLength)")
-                    print("7cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner7
-                    tapped7 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
-                    box.position = corners.lfd
-                    
-                    print("7pivot: \(box.pivot)")
-                    print("7position: \(box.position)")
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
-                        text1.opacity = 1
-                    }
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y - 0.01, z:edges.e10.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
-                    }
-                    
-                }
-                else if selected == true && tapped7{
-                    selected = false
-                    selectedCorner = SCNNode()
-                    tapped7 = false
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                }
-                else if selected == true && !tapped7{
-                    tapped1 = false
-                    tapped2 = false
-                    tapped3 = false
-                    tapped4 = false
-                    tapped5 = false
-                    tapped6 = false
-                    tapped7 = true
-                    tapped8 = false
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
-                    box.position = corners.lfd
-                    selectedCorner = corner7
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
-                        text1.opacity = 1
-                    }
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e10.x + 0.01, y:edges.e10.y - 0.01, z:edges.e10.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
-                    }
-                }
-            }
-            //select:rfh --> pivot:lbd
-            else if hit.node == corner8 {
-                if selected == false{
-                    /*print("8centerPosition:\(centerPosition)")
-                    print("8updatedHeight: \(updatedHeight)")
-                    print("8updatedWidth: \(updatedWidth)")
-                    print("8updatedLength: \(updatedLength)")
-                    print("8cornersMethod: \(corners)")*/
-                    
-                    selected = true
-                    selectedCorner = corner8
-                    tapped8 = true
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    colorEdgesYellow()
-                    //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
-                    box.position = corners.lbd
-                    
-                    print("8pivot: \(box.pivot)")
-                    print("8position: \(box.position)")
-                    
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
-                        text1.opacity = 1
-                    }
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e4.x+0.01, y:edges.e4.y, z:edges.e4.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
-                    }
-                }
-                else if selected == true && tapped8{
-                    selected = false
-                    tapped8 = false
-                    selectedCorner = SCNNode()
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    colorEdgesBlue()
-                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
-                    text1.opacity = 0.01
-                    text2.opacity = 0.01
-                    text3.opacity = 0.01
-                    return
-                }
-                else if selected == true && !tapped8{
-                    tapped1 = false
-                    tapped2 = false
-                    tapped3 = false
-                    tapped4 = false
-                    tapped5 = false
-                    tapped6 = false
-                    tapped7 = false
-                    tapped8 = true
-                   
-                    hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-                    box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
-                    box.position = corners.lbd
-                    selectedCorner = corner8
-                    
-                    if let textGeometry1 = text1.geometry as? SCNText {
-                        textGeometry1.string = "W:\(widthIncmStr)cm"
-                        text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
-                        text1.opacity = 1
-                    }
-                    if let textGeometry2 = text2.geometry as? SCNText {
-                        textGeometry2.string = "H:\(heightIncmStr)cm"
-                        text2.opacity = 1
-                        text2.position = SCNVector3(x:edges.e4.x+0.01, y:edges.e4.y, z:edges.e4.z)
-                    }
-                    
-                    if let textGeometry3 = text3.geometry as? SCNText {
-                        textGeometry3.string = "L:\(lengthIncmStr)cm"
-                        text3.opacity = 1
-                        text3.position = SCNVector3(x:edges.e9.x + 0.01, y:edges.e9.y, z:edges.e9.z)
-                    }
-                }
-            }
-            //only select the corners
-            else{
-                if let index = hitResults.firstIndex(of: hit) {
-                    hitResults.remove(at: index)
+            }else{
+                DispatchQueue.main.async {
+                    self.instructLabel.text = "You finished"
                 }
             }
         }
     }
-     
+    
     override func activatePlugin(withScene scene: PenScene, andView view: ARSCNView) {
         
         self.currentScene = scene
         self.currentView = view
+        
+        self.recStarted = false
+        self.finished = false
+        self.training = true
+        
+        confirmButton.isHidden = true
+        
+        recordManager.setPluginsLocked(locked: true)
+        if(self.recordManager != nil && self.recordManager.currentActiveUserID != nil){
+            self.targetLabel.text = ""
+            self.instructLabel.text = ""
+            self.headingLabel.text = "TRAINING: Touch&Pen"
+            self.headingLabel.textColor = UIColor.systemOrange
+        }else{
+            self.instructLabel.text = "User ID missing!"
+            self.headingLabel.textColor = UIColor.red
+            self.targetLabel.text = ""
+            self.headingLabel.text = ""
+            return
+        }
         
         self.tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         self.currentView?.addGestureRecognizer(tapGesture!)
@@ -1931,7 +2122,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if sphere1 != scene.drawingNode.childNode(withName: "lbdCorner", recursively: false){
             sphere1.position = corners.lbd
             sphere1.geometry = SCNSphere(radius: 0.008)
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere1.name = "lbdCorner"
             scene.drawingNode.addChildNode(sphere1)
             }
@@ -1941,8 +2132,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere2 != scene.drawingNode.childNode(withName: "lfdCorner", recursively: false){
             sphere2.position = corners.lfd
-            sphere2.geometry = SCNSphere(radius: 0.008)
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere2.geometry = SCNSphere(radius: 0.01)
+            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere2.name = "lfdCorner"
             scene.drawingNode.addChildNode(sphere2)
             }
@@ -1952,8 +2143,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere3 != scene.drawingNode.childNode(withName: "rbdCorner", recursively: false){
             sphere3.position = corners.rbd
-            sphere3.geometry = SCNSphere(radius: 0.008)
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere3.geometry = SCNSphere(radius: 0.01)
+            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere3.name = "rbdCorner"
             scene.drawingNode.addChildNode(sphere3)
             }
@@ -1963,8 +2154,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere4 != scene.drawingNode.childNode(withName: "rfdCorner", recursively: false){
             sphere4.position = corners.rfd
-            sphere4.geometry = SCNSphere(radius: 0.008)
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere4.geometry = SCNSphere(radius: 0.01)
+            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere4.name = "rfdCorner"
             scene.drawingNode.addChildNode(sphere4)
             }
@@ -1974,8 +2165,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere5 != scene.drawingNode.childNode(withName: "lbhCorner", recursively: false){
             sphere5.position = corners.lbh
-            sphere5.geometry = SCNSphere(radius: 0.008)
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere5.geometry = SCNSphere(radius: 0.01)
+            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere5.name = "lbhCorner"
             scene.drawingNode.addChildNode(sphere5)
             }
@@ -1985,8 +2176,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere6 != scene.drawingNode.childNode(withName: "lfhCorner", recursively: false){
             sphere6.position = corners.lfh
-            sphere6.geometry = SCNSphere(radius: 0.008)
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere6.geometry = SCNSphere(radius: 0.01)
+            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere6.name = "lfhCorner"
             scene.drawingNode.addChildNode(sphere6)
             }
@@ -1996,8 +2187,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere7 != scene.drawingNode.childNode(withName: "rbhCorner", recursively: false){
             sphere7.position = corners.rbh
-            sphere7.geometry = SCNSphere(radius: 0.008)
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere7.geometry = SCNSphere(radius: 0.01)
+            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere7.name = "rbhCorner"
             scene.drawingNode.addChildNode(sphere7)
             }
@@ -2007,8 +2198,8 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere8 != scene.drawingNode.childNode(withName: "rfhCorner", recursively: false){
             sphere8.position = corners.rfh
-            sphere8.geometry = SCNSphere(radius: 0.008)
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere8.geometry = SCNSphere(radius: 0.01)
+            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere8.name = "rfhCorner"
             scene.drawingNode.addChildNode(sphere8)
             }
@@ -2020,7 +2211,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let displayedWidth = SCNText(string: "", extrusionDepth: 0.2)
         //displayedWidth.font = UIFont (name: "Arial", size: 3)
         let material = SCNMaterial()
-        material.diffuse.contents = UIColor.gray
+        material.diffuse.contents = UIColor.white
         displayedWidth.materials = [material]
         let widthString = SCNNode(geometry: displayedWidth)
         
@@ -2207,12 +2398,70 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if let tapGestureRecognizer = self.tapGesture{
             self.currentView?.removeGestureRecognizer(tapGestureRecognizer)
         }
-        
+        if let text1 = currentScene?.drawingNode.childNode(withName: "widthString", recursively: false){
+            text1.removeFromParentNode()
+         }
+        if let text2 = currentScene?.drawingNode.childNode(withName: "heightString", recursively: false){
+            text2.removeFromParentNode()
+         }
+        if let text3 = currentScene?.drawingNode.childNode(withName: "lengthString", recursively: false){
+            text3.removeFromParentNode()
+         }
         self.currentScene = nil
 
         self.currentView = nil
     }
     
+    @IBAction func startedRecording(_ sender: Any) {
+        recStarted = true
+        recordingButton.isHidden = true
+        confirmButton.isHidden =  false
+        selected = false
+        training = false
+        reset()
+        colorEdgesBlue()
+        colorCornersBlue()
+        
+        //compute random width/height/length users should scale the object to
+        let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+        let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+        let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+        
+        //Vary between width/ height/length
+        let randomTarget = Int.random(in: 1...3)
+        if randomTarget == 1{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Width: \(randomWidth)"
+                self.target = "width"
+                self.randomValue = randomWidth
+            }
+        }
+        if randomTarget == 2{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Height: \(randomHeight)"
+                self.target = "height"
+                self.randomValue = randomHeight
+            }
+        }
+        if randomTarget == 3{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Length: \(randomLength)"
+                self.target = "length"
+                self.randomValue = randomLength
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.headingLabel.text = ""
+            self.instructLabel.text = ""
+        }
+    }
+    @IBAction func confirmButtonPressed(_ sender: Any) {
+        self.confirmPressed = true
+    }
+    @IBAction func undoButtonPressed(_ sender: Any) {
+        self.undoPressed = true
+    }
 }
 
 

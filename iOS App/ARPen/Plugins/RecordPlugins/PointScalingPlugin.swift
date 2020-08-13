@@ -15,22 +15,33 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     //reference to userStudyRecordManager to add new records
     var recordManager: UserStudyRecordManager!
 
-    var pressCounter = 0
-    var firstPoint = SCNVector3()
-    var secondPoint = SCNVector3()
-    var length = Float()
-    var selectedEdge = SCNNode()
+    private var recStarted :Bool = false
+    private var finished :Bool = false
+    private var training :Bool = false
     
+    var confirmPressed : Bool = false
+    var undoPressed : Bool = false
+    
+    //Gesture Recognizer
+    var panGesture: UIPanGestureRecognizer?
+    var tapGesture : UITapGestureRecognizer?
+    var currentPoint = CGPoint()
+    var scaleFactor : Float = 0
+
     //Variables for bounding Box updates
     var centerPosition = SCNVector3()
-    var updatedWidth : CGFloat = 0
-    var updatedHeight : CGFloat = 0
-    var updatedLength : CGFloat = 0
+    var updatedWidth : Float = 0
+    var updatedHeight : Float = 0
+    var updatedLength : Float = 0
     //l = left, r = right, b = back, f = front, d = down, h = high
     var corners : (lbd : SCNVector3, lfd : SCNVector3, rbd : SCNVector3, rfd : SCNVector3, lbh : SCNVector3, lfh : SCNVector3, rbh : SCNVector3, rfh : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0))
-    var edges : (e1 : SCNVector3, e2 : SCNVector3, e3 : SCNVector3, e4 : SCNVector3, e5 : SCNVector3, e6 : SCNVector3, e7 : SCNVector3, e8 : SCNVector3, e9 : SCNVector3, e10 : SCNVector3, e11 : SCNVector3, e12 : SCNVector3, e13: SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0))
+    
+    var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
+    
+    var edges : (e1 : SCNVector3, e2 : SCNVector3, e3 : SCNVector3, e4 : SCNVector3, e5 : SCNVector3, e6 : SCNVector3, e7 : SCNVector3, e8 : SCNVector3, e9 : SCNVector3, e10 : SCNVector3, e11 : SCNVector3, e12 : SCNVector3, e13 : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0),  SCNVector3Make(0, 0, 0))
 
     //Variables to ensure only one Corner an be selected at a time
+    var selectedEdge = SCNNode()
     var selected : Bool = false
     var tapped1 : Bool = false
     var tapped2 : Bool = false
@@ -42,8 +53,33 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var tapped8 : Bool = false
     var tapped9 : Bool = false
     var tapped10 : Bool = false
-    var tapped11 : Bool = false
-    var tapped12 : Bool = false
+    var tapped11: Bool = false
+    var tapped12: Bool = false
+    
+    var pressCounter = 0
+    var firstPoint = SCNVector3()
+    var secondPoint = SCNVector3()
+    var length = Float()
+    
+    //Corner Variables for diagonals
+    var next_rfh = SCNVector3()
+    var next_lbd = SCNVector3()
+    var next_lfh = SCNVector3()
+    var next_rbd = SCNVector3()
+    var next_rbh = SCNVector3()
+    var next_lfd = SCNVector3()
+    var next_lbh = SCNVector3()
+    var next_rfd = SCNVector3()
+    var dirVector1 = CGPoint()
+    var dirVector2 = CGPoint()
+    var dirVector3 = CGPoint()
+    var dirVector4 = CGPoint()
+    
+    //variables for initial bounding Box
+    var originalWidth : Float = 0
+    var originalHeight : Float = 0
+    var originalLength : Float = 0
+    var originalScale = SCNVector3()
     
     //Variables for text
     var widthIncmStr : String = ""
@@ -52,20 +88,26 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
 
     //Variables For USER STUDY TASK
     var userStudyReps = 0
-
-    //variables for initial bounding Box
-    var originalWidth : CGFloat = 0
-    var originalHeight : CGFloat = 0
-    var originalLength : CGFloat = 0
+    var selectionCounter = 0
 
     //variables for measuring
-    var finalWidth : CGFloat = 0
-    var finalHeight : CGFloat = 0
-    var finalLength : CGFloat = 0
+    var finalWidth : Float = 0
+    var finalHeight : Float = 0
+    var finalLength : Float = 0
+    
+    var randomValue: String = ""
+    var target = String()
+    
     var startTime : Date = Date()
     var endTime : Date = Date()
     var elapsedTime: Double = 0.0
     
+    @IBOutlet weak var confirmButton: UIButton!
+    @IBOutlet weak var undoButton: UIButton!
+    @IBOutlet weak var recordingButton: UIButton!
+    @IBOutlet weak var instructLabel: UILabel!
+    @IBOutlet weak var headingLabel: UILabel!
+    @IBOutlet weak var targetLabel: UILabel!
     override init() {
         super.init()
     
@@ -74,10 +116,100 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.pluginIdentifier = "PointScaling"
         self.needsBluetoothARPen = false
         self.pluginDisabledImage = UIImage.init(named: "ARMenusPluginDisabled")
-        
+        nibNameOfCustomUIView = "PointScalingPlugin"
         
         }
     
+    override func reset(){
+        guard let scene = self.currentScene else {return}
+        guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
+            print("not found")
+            return
+           }
+           guard let r2d2 = scene.drawingNode.childNode(withName: "currentr2d2", recursively: false) else{
+               print("not found")
+               return
+           }
+            guard let text1 = scene.drawingNode.childNode(withName: "widthString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text2 = scene.drawingNode.childNode(withName: "heightString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text3 = scene.drawingNode.childNode(withName: "lengthString", recursively: false) else{
+              print("not found")
+              return
+             }
+           guard let sceneView = self.currentView else { return }
+        
+            //reset box and model
+            selected = false
+            tapped1 = false
+            tapped2 = false
+            tapped3 = false
+            tapped4 = false
+            tapped5 = false
+            tapped6 = false
+            tapped7 = false
+            tapped8 = false
+
+            //compute random width/height/length users should scale the object to
+            let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+            let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+            let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+            
+            //Vary between width/ height/length
+            let randomTarget = Int.random(in: 1...3)
+            if randomTarget == 1{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Width: \(randomWidth)"
+                    self.target = "width"
+                    self.randomValue = randomWidth
+                }
+            }
+            if randomTarget == 2{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Height: \(randomHeight)"
+                    self.target = "height"
+                    self.randomValue = randomHeight
+                }
+            }
+            if randomTarget == 3{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Length: \(randomLength)"
+                    self.target = "length"
+                    self.randomValue = randomLength
+                }
+            }
+        
+            colorEdgesBlue()
+            
+            updatedWidth = originalWidth
+            updatedHeight = originalHeight
+            updatedLength = originalLength
+            
+            box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+            box.position = SCNVector3(0,0,-0.3)
+            centerPosition = box.position
+            box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
+            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.position = box.position
+            
+            setCorners()
+            setSpherePosition()
+            removeAllEdges()
+            setEdges()
+            
+            text1.opacity = 0.01
+            text2.opacity = 0.01
+            text3.opacity = 0.01
+            //measurement variables
+            selectionCounter = 0
+            elapsedTime = 0.0
+    }
+
     //need to adjust the corners while scaling visually
     func setSpherePosition(){
         guard let scene = self.currentScene else {return}
@@ -304,6 +436,133 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         edge12.removeFromParentNode()
     }
     
+    //changes color to yellow to visualize activated boundingBox
+    func colorEdgesBlue(){
+        guard let scene = self.currentScene else {return}
+        guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge2 = scene.drawingNode.childNode(withName: "edge2", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge3 = scene.drawingNode.childNode(withName: "edge3", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge4 = scene.drawingNode.childNode(withName: "edge4", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge5 = scene.drawingNode.childNode(withName: "edge5", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge6 = scene.drawingNode.childNode(withName: "edge6", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge7 = scene.drawingNode.childNode(withName: "edge7", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge8 = scene.drawingNode.childNode(withName: "edge8", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge9 = scene.drawingNode.childNode(withName: "edge9", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge10 = scene.drawingNode.childNode(withName: "edge10", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge11 = scene.drawingNode.childNode(withName: "edge11", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let edge12 = scene.drawingNode.childNode(withName: "edge12", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        
+    }
+    
+    //changes color to yellow to visualize activated boundingBox
+    func colorCornersBlue(){
+        guard let scene = self.currentScene else {return}
+        guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner2 = scene.drawingNode.childNode(withName: "lfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner3 = scene.drawingNode.childNode(withName: "rbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner4 = scene.drawingNode.childNode(withName: "rfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner5 = scene.drawingNode.childNode(withName: "lbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner6 = scene.drawingNode.childNode(withName: "lfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner7 = scene.drawingNode.childNode(withName: "rbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner8 = scene.drawingNode.childNode(withName: "rfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        corner1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+       
+        
+    }
+    
     //computes the edges
     func lineBetweenNodes(positionA: SCNVector3, positionB: SCNVector3, inScene: SCNScene) -> SCNNode {
         let vector = SCNVector3(positionA.x - positionB.x, positionA.y - positionB.y, positionA.z - positionB.z)
@@ -314,7 +573,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         lineGeometry.radius = 0.0015
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemBlue
+        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemOrange
 
         let lineNode = SCNNode(geometry: lineGeometry)
         lineNode.opacity = 0.6
@@ -394,10 +653,10 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let pressed2 = buttons[Button.Button2]!
         let pressed3 = buttons[Button.Button3]!
         
-        let widthIncmStr = String(format: "%.2f",updatedWidth*100)
-        let heightIncmStr = String(format: "%.2f",updatedHeight*100)
-        let lengthIncmStr = String(format: "%.2f",updatedLength*100)
-        let valueIncmStr = String(format: "%.2f",length*100)
+        let widthIncmStr = String(format: "%.1f",updatedWidth*100)
+        let heightIncmStr = String(format: "%.1f",updatedHeight*100)
+        let lengthIncmStr = String(format: "%.1f",updatedLength*100)
+        let valueIncmStr = String(format: "%.1f",length*100)
         
         //first button press selects corner
         if pressCounter == 0{
@@ -412,9 +671,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         if hit.node == edge1 {
                             selected = true
                             tapped1 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge1
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
                                 text1.position = SCNVector3(x:edges.e1.x-0.025, y:edges.e1.y - 0.015, z:edges.e1.z)
@@ -425,9 +686,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge2{
                             selected = true
                             tapped2 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge2
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
                                 text1.opacity = 1
@@ -438,9 +701,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge3{
                             selected = true
                             tapped3 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge3
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
                                 text1.position = SCNVector3(x:edges.e3.x-0.025, y:edges.e3.y + 0.01, z:edges.e3.z)
@@ -451,9 +716,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge4{
                             selected = true
                             tapped4 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge4
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
                                 text1.opacity = 1
@@ -464,9 +731,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge5{
                             selected = true
                             tapped5 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge5
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
                                 text1.opacity = 1
@@ -477,9 +746,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge6{
                             selected = true
                             tapped6 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge6
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
                                 text1.opacity = 1
@@ -490,9 +761,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge7{
                             selected = true
                             tapped7 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge7
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
                                 text1.opacity = 1
@@ -503,9 +776,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge8{
                             selected = true
                             tapped8 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge8
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
                                 text1.position = SCNVector3(x:edges.e8.x-0.025, y:edges.e8.y + 0.015, z:edges.e8.z)
@@ -516,9 +791,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge9{
                             selected = true
                             tapped9 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge9
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
                                 text1.opacity = 1
@@ -529,9 +806,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge10{
                             selected = true
                             tapped10 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge10
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
                                 text1.opacity = 1
@@ -542,9 +821,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge11{
                             selected = true
                             tapped11 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge11
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
                                 text1.opacity = 1
@@ -555,9 +836,11 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         else if hit.node == edge12{
                             selected = true
                             tapped12 = true
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selectedEdge = edge12
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
                                 text1.position = SCNVector3(x:edges.e12.x - 0.025 , y:edges.e12.y - 0.015, z:edges.e12.z)
@@ -601,8 +884,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         tapped11 = false
                         tapped12 = false
                         selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                         text1.opacity = 0.01
+                        endTime = Date()
                     }
                     //only select the corners
                     else{
@@ -612,7 +895,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     }
                 }
             }
-            
+            //switch to other edge
             if pressed{
                 for hit in hitResults{
                    if hit.node != selectedEdge{
@@ -633,10 +916,9 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                            
                             selectedEdge = edge1
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -660,10 +942,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge2
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
@@ -714,10 +994,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge4
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
@@ -741,10 +1019,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge5
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
@@ -768,10 +1044,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge6
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
@@ -795,10 +1069,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge7
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
@@ -822,10 +1094,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge8
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -849,10 +1119,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge9
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
@@ -876,10 +1144,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge10
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "H:\(heightIncmStr)cm"
@@ -903,10 +1169,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = false
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge11
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "L:\(lengthIncmStr)cm"
@@ -930,10 +1194,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             tapped12 = true
                             pressCounter = 0
                             
-                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-                            hit.node.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                            hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                             selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                            selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
                             selectedEdge = edge12
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -1007,7 +1269,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     if line != scene.drawingNode.childNode(withName: "line", recursively: false){
                         line.name = "line"
                         self.edges.e13 = SCNVector3 (x:(firstPoint.x + secondPoint.x) / 2, y:(firstPoint.y + secondPoint.y) / 2, z:(firstPoint.z + secondPoint.z) / 2)
-                        line.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                        line.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                         scene.drawingNode.addChildNode(line)
                     }
                     
@@ -1038,10 +1300,10 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 //width
                 if (tapped1 || tapped3 || tapped8 || tapped12){
                     //line drawn from left to right
-                    updatedWidth = CGFloat((length))
+                    updatedWidth = length
                     let scaleFactor = Float(updatedWidth/originalWidth)
-                    updatedHeight = originalHeight * CGFloat((scaleFactor))
-                    updatedLength = originalLength * CGFloat((scaleFactor))
+                    updatedHeight = originalHeight * scaleFactor
+                    updatedLength = originalLength * scaleFactor
                     
                     box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                     r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
@@ -1051,35 +1313,31 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     removeAllEdges()
                     setEdges()
                     
-                    //setEdges() colors all edges blue again
+                    //setEdges() colors all edges blue again, recolor selected edge
                     if tapped1{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge1", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped3{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge3", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped8{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge8", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped12{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge12", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                 }
                 //height
                 else if (tapped2 || tapped4 || tapped6 || tapped10){
                     //line drawn from left to right
-                    updatedHeight = CGFloat((length))
+                    updatedHeight = length
                     let scaleFactor = Float(updatedHeight/originalHeight)
-                    updatedWidth = originalWidth * CGFloat((scaleFactor))
-                    updatedLength = originalLength * CGFloat((scaleFactor))
+                    updatedWidth = originalWidth * scaleFactor
+                    updatedLength = originalLength * scaleFactor
                     
                     box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                     r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
@@ -1092,33 +1350,29 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //removeAllEdges() also removes the sectedEdge assignment and therefore the selectedEdge would be automatically deselected after lifting press
                     if tapped2{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge2", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped4{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge4", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped6{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge6", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped10{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge10", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                 
                 }
                 //length
                 else if (tapped5 || tapped7 || tapped9 || tapped11){
                     //line drawn from left to right
-                    updatedLength = CGFloat((length))
+                    updatedLength = length
                     let scaleFactor = Float(updatedLength/originalLength)
-                    updatedHeight = originalHeight * CGFloat((scaleFactor))
-                    updatedWidth = originalWidth * CGFloat((scaleFactor))
+                    updatedHeight = originalHeight * scaleFactor
+                    updatedWidth = originalWidth * scaleFactor
                     
                     box.scale = SCNVector3(x:scaleFactor, y:scaleFactor, z:scaleFactor)
                     r2d2.scale = SCNVector3(x: 0.001*scaleFactor, y: 0.001*scaleFactor, z: 0.001*scaleFactor)
@@ -1131,23 +1385,19 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //removeAllEdges() also removes the sectedEdge assignment and therefore the selectedEdge would be automatically deselected after lifting press
                     if tapped5{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge5", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped7{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge7", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped9{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge9", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
                     if tapped11{
                         selectedEdge = scene.drawingNode.childNode(withName: "edge11", recursively: false)!
-                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                        selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                        selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     }
               
                 }
@@ -1255,13 +1505,69 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         text1.opacity = 1
                     }
                 }
+                endTime = Date()
             }
             
             if !pressed && !pressed2 && !pressed3 && pressCounter>2 {
                 pressCounter = 1
-                selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
-                selectedEdge.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+                selectedEdge.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                 
+            }
+        }
+        
+        if recStarted && selected{
+            if userStudyReps < 6{
+                if confirmPressed{
+                    
+                    elapsedTime = endTime.timeIntervalSince(startTime)
+                    
+                    self.recordManager.addNewRecord(withIdentifier: self.pluginIdentifier, andData: [
+                    "timestamp" : "\(Date().millisecondsSince1970)",
+                    "userStudyReps" : "\(userStudyReps)",
+                    "originalWidth": "\(originalWidth)",
+                    "originalHeight": "\(originalHeight)",
+                    "originalLength": "\(originalLength)",
+                    "finalWidthExact" : "\(updatedWidth)",
+                    "finalHeightExact" : "\(updatedHeight)",
+                    "finalLengthExact" : "\(updatedLength)",
+                    "finalWidthRounded" : "\(widthIncmStr)",
+                    "finalHeightRounded" : "\(heightIncmStr)",
+                    "finalLengthRounded" : "\(lengthIncmStr)",
+                    "scaleFactor": "\(scaleFactor)",
+                    "number of scale attempts": "\(selectionCounter)",
+                    "selectedEdge" : "\(String(describing:selectedEdge.name))",
+                    "target side to scale": "\(target)",
+                    "target size:": "\(randomValue)",
+                    "task time" : "\(elapsedTime)"
+                    ])
+                    
+                    print("timestamp: ", Date().millisecondsSince1970)
+                    print("userStudyReps: ", userStudyReps)
+                    print("selection counter: ", selectionCounter)
+                    print("finalWidthExact :", updatedWidth)
+                    print("finalHeightExact: ", updatedHeight)
+                    print("finalLengthExact: ", updatedLength)
+                    print("finalWidthRounded: ", widthIncmStr)
+                    print("finalHeightRounded: ", heightIncmStr)
+                    print("finalLengthRounded: ", lengthIncmStr)
+                    print("numberOfSelections: ", selectionCounter)
+                    print("scaleFactor: ", scaleFactor)
+                    print("time: ", elapsedTime)
+                    print("selectedEdge: ", selectedEdge.name)
+                    print("target side to scale", target)
+                    print("target size:", randomValue)
+                    
+                    userStudyReps += 1
+                    confirmPressed = false
+                    reset()
+                }
+                if undoPressed{
+                    reset()
+                }
+            }else{
+                DispatchQueue.main.async {
+                    self.instructLabel.text = "You finished"
+                }
             }
         }
     }
@@ -1270,6 +1576,26 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         self.currentScene = scene
         self.currentView = view
+        
+        self.recStarted = false
+        self.finished = false
+        self.training = true
+        
+        confirmButton.isHidden = true
+        
+        recordManager.setPluginsLocked(locked: true)
+        if(self.recordManager != nil && self.recordManager.currentActiveUserID != nil){
+            self.targetLabel.text = ""
+            self.instructLabel.text = ""
+            self.headingLabel.text = "TRAINING: PointScaling"
+            self.headingLabel.textColor = UIColor.systemOrange
+        }else{
+            self.instructLabel.text = "User ID missing!"
+            self.headingLabel.textColor = UIColor.red
+            self.targetLabel.text = ""
+            self.headingLabel.text = ""
+            return
+        }
         
         //define r2d2
         let starwars = SCNScene(named: "art.scnassets/R2D2/r2d2Center.dae")
@@ -1296,9 +1622,9 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  "    discard_fragment(); \n" +
                  "} \n"*/
         
-        originalWidth = CGFloat((maxCorner.x - minCorner.x))
-        originalHeight = CGFloat((maxCorner.z - minCorner.z))
-        originalLength = CGFloat((maxCorner.y - minCorner.y))
+        originalWidth = maxCorner.x - minCorner.x
+        originalHeight = maxCorner.z - minCorner.z
+        originalLength = maxCorner.y - minCorner.y
         //print("width: \(originalWidth)")
         //print("height: \(originalHeight)")
         //print("length: \(originalLength)")
@@ -1331,37 +1657,6 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         setCorners()
         //visualize lines for edges
         setEdges()
-        /*let displayWidth = SCNText(string: String(describing:updatedWidth), extrusionDepth: 0.2)
-        displayWidth.font = UIFont (name: "Arial", size: 3)
-        displayWidth.firstMaterial!.diffuse.contents = UIColor.black
-        displayWidth.firstMaterial!.specular.contents = UIColor.black
-        let widthString = SCNNode(geometry: displayWidth)
-        
-        if widthString != scene.drawingNode.childNode(withName: "widthString", recursively: false){
-            widthString.position = SCNVector3(0,0,-0.3)
-            centerPosition = boundingBox.position
-            print("position:\(boundingBox.position)")
-            widthString.name = "widthString"
-            widthString.opacity = 0.01
-            scene.drawingNode.addChildNode(widthString)
-            }
-        else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
-            
-        }
-        
-        let displayHeight = SCNText(string: String(describing:updatedHeight), extrusionDepth: 0.2)
-        displayHeight.font = UIFont (name: "Arial", size: 3)
-        displayHeight.firstMaterial!.diffuse.contents = UIColor.black
-        displayHeight.firstMaterial!.specular.contents = UIColor.black
-        let HeightString = SCNNode(geometry: displayHeight)
-
-        
-        let displayLength = SCNText(string: String(describing:updatedLength), extrusionDepth: 0.2)
-        displayLength.font = UIFont (name: "Arial", size: 3)
-        displayLength.firstMaterial!.diffuse.contents = UIColor.black
-        displayLength.firstMaterial!.specular.contents = UIColor.black
-        let LengthString = SCNNode(geometry: displayLength)*/
         
         //Visualize corners for Selection
         let sphere1 = SCNNode()
@@ -1376,7 +1671,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if sphere1 != scene.drawingNode.childNode(withName: "lbdCorner", recursively: false){
             sphere1.position = corners.lbd
             sphere1.geometry = SCNSphere(radius: 0.008)
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere1.name = "lbdCorner"
             scene.drawingNode.addChildNode(sphere1)
             }
@@ -1386,8 +1681,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere2 != scene.drawingNode.childNode(withName: "lfdCorner", recursively: false){
             sphere2.position = corners.lfd
-            sphere2.geometry = SCNSphere(radius: 0.008)
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere2.geometry = SCNSphere(radius: 0.01)
+            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere2.name = "lfdCorner"
             scene.drawingNode.addChildNode(sphere2)
             }
@@ -1397,8 +1692,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere3 != scene.drawingNode.childNode(withName: "rbdCorner", recursively: false){
             sphere3.position = corners.rbd
-            sphere3.geometry = SCNSphere(radius: 0.008)
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere3.geometry = SCNSphere(radius: 0.01)
+            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere3.name = "rbdCorner"
             scene.drawingNode.addChildNode(sphere3)
             }
@@ -1408,8 +1703,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere4 != scene.drawingNode.childNode(withName: "rfdCorner", recursively: false){
             sphere4.position = corners.rfd
-            sphere4.geometry = SCNSphere(radius: 0.008)
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere4.geometry = SCNSphere(radius: 0.01)
+            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere4.name = "rfdCorner"
             scene.drawingNode.addChildNode(sphere4)
             }
@@ -1419,8 +1714,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere5 != scene.drawingNode.childNode(withName: "lbhCorner", recursively: false){
             sphere5.position = corners.lbh
-            sphere5.geometry = SCNSphere(radius: 0.008)
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere5.geometry = SCNSphere(radius: 0.01)
+            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere5.name = "lbhCorner"
             scene.drawingNode.addChildNode(sphere5)
             }
@@ -1430,8 +1725,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere6 != scene.drawingNode.childNode(withName: "lfhCorner", recursively: false){
             sphere6.position = corners.lfh
-            sphere6.geometry = SCNSphere(radius: 0.008)
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere6.geometry = SCNSphere(radius: 0.01)
+            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere6.name = "lfhCorner"
             scene.drawingNode.addChildNode(sphere6)
             }
@@ -1441,8 +1736,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere7 != scene.drawingNode.childNode(withName: "rbhCorner", recursively: false){
             sphere7.position = corners.rbh
-            sphere7.geometry = SCNSphere(radius: 0.008)
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere7.geometry = SCNSphere(radius: 0.01)
+            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere7.name = "rbhCorner"
             scene.drawingNode.addChildNode(sphere7)
             }
@@ -1452,8 +1747,8 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere8 != scene.drawingNode.childNode(withName: "rfhCorner", recursively: false){
             sphere8.position = corners.rfh
-            sphere8.geometry = SCNSphere(radius: 0.008)
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere8.geometry = SCNSphere(radius: 0.01)
+            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere8.name = "rfhCorner"
             scene.drawingNode.addChildNode(sphere8)
             }
@@ -1480,7 +1775,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let displayedValue = SCNText(string: "", extrusionDepth: 0.2)
         //displayedWidth.font = UIFont (name: "Arial", size: 3)
         let material = SCNMaterial()
-        material.diffuse.contents = UIColor.magenta
+        material.diffuse.contents = UIColor.white
         displayedValue.materials = [material]
         let selectedEdgeScale = SCNNode(geometry: displayedValue)
         
@@ -1589,6 +1884,56 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.currentView = nil
     }
     
+    @IBAction func startedRecording(_ sender: Any) {
+        recStarted = true
+        recordingButton.isHidden = true
+        confirmButton.isHidden =  false
+        selected = false
+        training = false
+        reset()
+        colorEdgesBlue()
+        colorCornersBlue()
+        
+        //compute random width/height/length users should scale the object to
+        let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+        let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+        let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+        
+        //Vary between width/ height/length
+        let randomTarget = Int.random(in: 1...3)
+        if randomTarget == 1{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Width: \(randomWidth)"
+                self.target = "width"
+                self.randomValue = randomWidth
+            }
+        }
+        if randomTarget == 2{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Height: \(randomHeight)"
+                self.target = "height"
+                self.randomValue = randomHeight
+            }
+        }
+        if randomTarget == 3{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Length: \(randomLength)"
+                self.target = "length"
+                self.randomValue = randomLength
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.headingLabel.text = ""
+            self.instructLabel.text = ""
+        }
+    }
+    @IBAction func confirmButtonPressed(_ sender: Any) {
+        self.confirmPressed = true
+    }
+    @IBAction func undoButtonPressed(_ sender: Any) {
+        self.undoPressed = true
+    }
 }
 
 

@@ -13,10 +13,19 @@ import ARKit
 class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var recordManager: UserStudyRecordManager!
 
+    private var recStarted :Bool = false
+    private var finished :Bool = false
+    private var training :Bool = false
+
+    var confirmPressed : Bool = false
+    var undoPressed : Bool = false
+
+    var currentPoint = CGPoint()
+    var scaleFactor : Float = 0
+
     private var insideSphere : SCNNode? = nil
     private var highlighted: Bool = false
-    
-   var currentPoint = CGPoint()
+
     //Variables for bounding Box updates
     var centerPosition = SCNVector3()
     var updatedWidth : Float = 0
@@ -24,7 +33,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var updatedLength : Float = 0
     //l = left, r = right, b = back, f = front, d = down, h = high
     var corners : (lbd : SCNVector3, lfd : SCNVector3, rbd : SCNVector3, rfd : SCNVector3, lbh : SCNVector3, lfh : SCNVector3, rbh : SCNVector3, rfh : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0))
+
     var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
+
     var edges : (e1 : SCNVector3, e2 : SCNVector3, e3 : SCNVector3, e4 : SCNVector3, e5 : SCNVector3, e6 : SCNVector3, e7 : SCNVector3, e8 : SCNVector3, e9 : SCNVector3, e10 : SCNVector3, e11 : SCNVector3, e12 : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0))
 
     //Variables to ensure only one Corner an be selected at a time
@@ -52,16 +63,41 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var dirVector2 = CGPoint()
     var dirVector3 = CGPoint()
     var dirVector4 = CGPoint()
-    
-    //Variables for text
-    var widthIncmStr : String = ""
-    var heightIncmStr : String = ""
-    var lengthIncmStr : String = ""
 
     //variables for initial bounding Box
     var originalWidth : Float = 0
     var originalHeight : Float = 0
     var originalLength : Float = 0
+    var originalScale = SCNVector3()
+
+    //Variables for text
+    var widthIncmStr : String = ""
+    var heightIncmStr : String = ""
+    var lengthIncmStr : String = ""
+
+    //Variables For USER STUDY TASK
+    var userStudyReps = 0
+    var selectionCounter = 0
+
+    //variables for measuring
+    var finalWidth : Float = 0
+    var finalHeight : Float = 0
+    var finalLength : Float = 0
+
+    var randomValue: String = ""
+    var target = String()
+
+    var startTime : Date = Date()
+    var endTime : Date = Date()
+    var elapsedTime: Double = 0.0
+    
+    @IBOutlet weak var confirm: UIButton!
+    @IBOutlet weak var undoButton: UIButton!
+    @IBOutlet weak var recordingButton: UIButton!
+    @IBOutlet weak var confirmButton: UIButton!
+    @IBOutlet weak var targetLabel: UILabel!
+    @IBOutlet weak var instructLabel: UILabel!
+    @IBOutlet weak var headingLabel: UILabel!
     
     override init() {
         super.init()
@@ -71,10 +107,102 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.pluginIdentifier = "DirectPen"
         self.needsBluetoothARPen = false
         self.pluginDisabledImage = UIImage.init(named: "ARMenusPluginDisabled")
-        
+        nibNameOfCustomUIView = "DirectPenScalingPlugin"
         
     }
+    
+    override func reset(){
+        guard let scene = self.currentScene else {return}
+        guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
+            print("not found")
+            return
+           }
+           guard let r2d2 = scene.drawingNode.childNode(withName: "currentr2d2", recursively: false) else{
+               print("not found")
+               return
+           }
+            guard let text1 = scene.drawingNode.childNode(withName: "widthString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text2 = scene.drawingNode.childNode(withName: "heightString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text3 = scene.drawingNode.childNode(withName: "lengthString", recursively: false) else{
+              print("not found")
+              return
+             }
+           guard let sceneView = self.currentView else { return }
+        
+            //reset box and model
+            selected = false
+            tapped1 = false
+            tapped2 = false
+            tapped3 = false
+            tapped4 = false
+            tapped5 = false
+            tapped6 = false
+            tapped7 = false
+            tapped8 = false
 
+            //compute random width/height/length users should scale the object to
+            let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+            let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+            let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+            
+            //Vary between width/ height/length
+            let randomTarget = Int.random(in: 1...3)
+            if randomTarget == 1{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Width: \(randomWidth)"
+                    self.target = "width"
+                    self.randomValue = randomWidth
+                }
+            }
+            if randomTarget == 2{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Height: \(randomHeight)"
+                    self.target = "height"
+                    self.randomValue = randomHeight
+                }
+            }
+            if randomTarget == 3{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Length: \(randomLength)"
+                    self.target = "length"
+                    self.randomValue = randomLength
+                }
+            }
+        
+            selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            
+            updatedWidth = originalWidth
+            updatedHeight = originalHeight
+            updatedLength = originalLength
+            
+            box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+            box.position = SCNVector3(0,0,-0.3)
+            centerPosition = box.position
+            box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
+            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.position = box.position
+            
+            setCorners()
+            setSpherePosition()
+            removeAllEdges()
+            setEdges()
+            colorEdgesBlue()
+        
+            text1.opacity = 0.01
+            text2.opacity = 0.01
+            text3.opacity = 0.01
+            //measurement variables
+            selectionCounter = 0
+            elapsedTime = 0.0
+    }
+
+    
     //need to adjust the corners while scaling visually
     func setSpherePosition(){
         guard let scene = self.currentScene else {return}
@@ -159,7 +287,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         lineGeometry.radius = 0.001
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemBlue
+        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemOrange
 
         let lineNode = SCNNode(geometry: lineGeometry)
         lineNode.opacity = 0.01
@@ -333,7 +461,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     }
     
     //changes color to yellow to visualize activated boundingBox
-    func colorEdges(){
+    func colorEdgesBlue(){
         guard let scene = self.currentScene else {return}
         guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
             print("not found")
@@ -384,30 +512,66 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             return
         }
         
-        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge1.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge2.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge3.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge4.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge5.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge6.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge7.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge8.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge9.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge10.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge11.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge12.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        
+    }
+    
+    //changes color to yellow to visualize activated boundingBox
+    func colorCornersBlue(){
+        guard let scene = self.currentScene else {return}
+        guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner2 = scene.drawingNode.childNode(withName: "lfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner3 = scene.drawingNode.childNode(withName: "rbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner4 = scene.drawingNode.childNode(withName: "rfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner5 = scene.drawingNode.childNode(withName: "lbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner6 = scene.drawingNode.childNode(withName: "lfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner7 = scene.drawingNode.childNode(withName: "rbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner8 = scene.drawingNode.childNode(withName: "rfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        corner1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+       
         
     }
     
@@ -449,42 +613,42 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if (corners.lbd.x - 0.008 <= point.x && point.x <= corners.lbd.x + 0.008 && corners.lbd.y - 0.008 <= point.y && point.y <= corners.lbh.y + 0.008
             && corners.lbd.z - 0.008 <= point.z && point.z <= corners.lbd.z + 0.008){
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere1
         }
         else if (corners.lfd.x - 0.008 <= point.x && point.x <= corners.lfd.x + 0.008 && corners.lfd.y - 0.008 <= point.y && point.y <= corners.lfd.y + 0.008
         && corners.lfd.z - 0.008 <= point.z && point.z <= corners.lfd.z + 0.008){
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere2
         }
         else if (corners.rbd.x - 0.008 <= point.x && point.x <= corners.rbd.x + 0.008 && corners.rbd.y - 0.008 <= point.y && point.y <= corners.rbd.y + 0.008
         && corners.rbd.z - 0.008 <= point.z && point.z <= corners.rbd.z + 0.008){
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere3
         }
         else if (corners.rfd.x - 0.008 <= point.x && point.x <= corners.rfd.x + 0.008 && corners.rfd.y - 0.008 <= point.y && point.y <= corners.rfd.y + 0.008
         && corners.rfd.z - 0.008 <= point.z && point.z <= corners.rfd.z + 0.008){
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere4
         }
         else if (corners.lbh.x - 0.008 <= point.x && point.x <= corners.lbh.x + 0.008 && corners.lbh.y - 0.008 <= point.y && point.y <= corners.lbh.y + 0.008
         && corners.lbh.z - 0.008 <= point.z && point.z <= corners.lbh.z + 0.008){
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere5
         }
         else if (corners.lfh.x - 0.008 <= point.x && point.x <= corners.lfh.x + 0.008 && corners.lfh.y - 0.008 <= point.y && point.y <= corners.lfh.y + 0.008
         && corners.lfh.z - 0.008 <= point.z && point.z <= corners.lfh.z + 0.008){
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere6
         }
         else if  (corners.rbh.x - 0.008 <= point.x && point.x <= corners.rbh.x + 0.008 && corners.rbh.y - 0.008 <= point.y && point.y <= corners.rbh.y + 0.008
                && corners.rbh.z - 0.008 <= point.z && point.z <= corners.rbh.z + 0.008){
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere = sphere7
         }
         else if (corners.rfh.x - 0.008 <= point.x && point.x <= corners.rfh.x + 0.008 && corners.rfh.y - 0.008 <= point.y && point.y <= corners.rfh.y + 0.008
         && corners.rfh.z - 0.008 <= point.z && point.z <= corners.rfh.z + 0.008){
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
             insideSphere  = sphere8
         }
         else{
@@ -635,26 +799,17 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if pressed{
             //only perform scaling if pentip is inside corner sphere
             if let corner = self.insideSphere{
-                corner.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+                corner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                     //select:lbd --> pivot:rfh
                     if corner == corner1 {
                         if selected == false{
-                            print("1centerPosition:\(centerPosition)")
-                            print("1updatedHeight: \(updatedHeight)")
-                            print("1updatedWidth: \(updatedWidth)")
-                            print("1updatedLength: \(updatedLength)")
-                            print("1cornersMethod: \(corners)")
                             
                             selected = true
                             selectedCorner = corner1
                             tapped1 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                             box.position = corners.rfh
-                            
-                            print("pivot1: \(box.pivot)")
-                            print("position1: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -678,22 +833,13 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:lfd --> pivot:rbh
                     else if corner == corner2{
                         if selected == false{
-                            print("2centerPosition:\(centerPosition)")
-                            print("2updatedHeight: \(updatedHeight)")
-                            print("2updatedWidth: \(updatedWidth)")
-                            print("2updatedLength: \(updatedLength)")
-                            print("2cornersMethod: \(corners)")
                             
                             selected = true
                             selectedCorner = corner2
                             tapped2 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                             box.position = corners.rbh
-                            
-                            print("pivot2: \(box.pivot)")
-                            print("position2: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -715,22 +861,13 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rbd --> pivot:lfh
                     else if corner == corner3 {
                         if selected == false{
-                            print("3centerPosition:\(centerPosition)")
-                            print("3updatedHeight: \(updatedHeight)")
-                            print("3updatedWidth: \(updatedWidth)")
-                            print("3updatedLength: \(updatedLength)")
-                            print("3cornersMethod: \(corners)")
                             
                             selected = true
                             selectedCorner = corner3
                             tapped3 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                             box.position = corners.lfh
-                            
-                            print("3pivot: \(box.pivot)")
-                            print("3position: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -755,21 +892,12 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     else if corner == corner4 {
                         if selected == false{
 
-                            print("4centerPosition:\(centerPosition)")
-                            print("4updatedHeight: \(updatedHeight)")
-                            print("4updatedWidth: \(updatedWidth)")
-                            print("4updatedLength: \(updatedLength)")
-                            print("4cornersMethod: \(corners)")
                             selected = true
                             selectedCorner = corner4
                             tapped4 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
                             box.position = corners.lbh
-                            
-                            print("4pivot: \(box.pivot)")
-                            print("4position: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -794,21 +922,12 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     else if corner == corner5{
                         if selected == false{
 
-                            print("5centerPosition:\(centerPosition)")
-                            print("5updatedHeight: \(updatedHeight)")
-                            print("5updatedWidth: \(updatedWidth)")
-                            print("5updatedLength: \(updatedLength)")
-                            print("5cornersMethod: \(corners)")
                             selected = true
                             selectedCorner = corner5
                             tapped5 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                             box.position = corners.rfd
-                            
-                            print("5pivot: \(box.pivot)")
-                            print("5position: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -833,22 +952,12 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     else if corner == corner6{
                         if selected == false{
 
-                            print("6centerPosition:\(centerPosition)")
-                            print("6updatedHeight: \(updatedHeight)")
-                            print("6updatedWidth: \(updatedWidth)")
-                            print("6updatedLength: \(updatedLength)")
-                            print("6cornersMethod: \(corners)")
-                            
                             selected = true
                             selectedCorner = corner6
                             tapped6 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                             box.position = corners.rbd
-                            
-                            print("6pivot: \(box.pivot)")
-                            print("6position: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -872,22 +981,13 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rbh --> pivot:lfd
                     else if corner == corner7 {
                         if selected == false{
-                            print("7centerPosition:\(centerPosition)")
-                            print("7updatedHeight: \(updatedHeight)")
-                            print("7updatedWidth: \(updatedWidth)")
-                            print("7updatedLength: \(updatedLength)")
-                            print("7cornersMethod: \(corners)")
                             
                             selected = true
                             selectedCorner = corner7
                             tapped7 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                             box.position = corners.lfd
-                            
-                            print("7pivot: \(box.pivot)")
-                            print("7position: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -910,22 +1010,13 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rfh --> pivot:lbd
                     else if corner == corner8 {
                         if selected == false{
-                            print("8centerPosition:\(centerPosition)")
-                            print("8updatedHeight: \(updatedHeight)")
-                            print("8updatedWidth: \(updatedWidth)")
-                            print("8updatedLength: \(updatedLength)")
-                            print("8cornersMethod: \(corners)")
                             
                             selected = true
                             selectedCorner = corner8
                             tapped8 = true
-                            colorEdges()
                             //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                             box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                             box.position = corners.lbd
-                            
-                            print("8pivot: \(box.pivot)")
-                            print("8position: \(box.position)")
                             
                             if let textGeometry1 = text1.geometry as? SCNText {
                                 textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -955,7 +1046,6 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         let scalar1 = dotProduct(vecA: vecA , vecB: dirVector1)  / dotProduct(vecA: dirVector1, vecB: dirVector1)
                         let scaledDirVec = CGPoint(x: dirVector1.x * scalar1, y: dirVector1.y * scalar1)
                         let projectedPoint1 = CGPoint(x: screenCorners.rfh.x + scaledDirVec.x, y: screenCorners.rfh.y + scaledDirVec.y)
-                        print("projection: \(projectedPoint1)")
                         var hitTestResult = sceneView.hitTest(projectedPoint1, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                         for hit in hitTestResult{
                                 let currentPointInWC = hit.worldCoordinates
@@ -964,9 +1054,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                                 updatedWidth = originalWidth * (scaleFactor)
                                 updatedLength = originalLength * (scaleFactor)
                                 
-                                let widthIncmStr = String(format: "%.2f",updatedWidth*100)
-                                let heightIncmStr = String(format: "%.2f",updatedHeight*100)
-                                let lengthIncmStr = String(format: "%.2f",updatedLength*100)
+                                let widthIncmStr = String(format: "%.1f",updatedWidth*100)
+                                let heightIncmStr = String(format: "%.1f",updatedHeight*100)
+                                let lengthIncmStr = String(format: "%.1f",updatedLength*100)
 
                                 if(tapped1){
                                     centerPosition = SCNVector3(x: corners.rfh.x - Float(updatedWidth/2), y: corners.rfh.y - Float(updatedHeight/2), z: corners.rfh.z - Float(updatedLength/2))
@@ -1017,7 +1107,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                                 setSpherePosition()
                                 removeAllEdges()
                                 setEdges()
-                                colorEdges()
+                                colorEdgesBlue()
+                            
                                 
                                 //update diagonals
                                 if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -1076,7 +1167,6 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         let scalar3 = dotProduct(vecA: vecA , vecB: dirVector3)  / dotProduct(vecA: dirVector3, vecB: dirVector3)
                         let scaledDirVec = CGPoint(x: dirVector3.x * scalar3, y: dirVector3.y * scalar3)
                         let projectedPoint3 = CGPoint(x: screenCorners.rbh.x + scaledDirVec.x, y: screenCorners.rbh.y + scaledDirVec.y)
-                        print("projection: \(projectedPoint3)")
                         var hitTestResult = sceneView.hitTest(projectedPoint3, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                         for hit in hitTestResult{
                             if hit.node == line3{
@@ -1086,9 +1176,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                                 updatedWidth = originalWidth * (scaleFactor)
                                 updatedLength = originalLength * (scaleFactor)
                                 
-                                let widthIncmStr = String(format: "%.2f",updatedWidth*100)
-                                let heightIncmStr = String(format: "%.2f",updatedHeight*100)
-                                let lengthIncmStr = String(format: "%.2f",updatedLength*100)
+                                let widthIncmStr = String(format: "%.1f",updatedWidth*100)
+                                let heightIncmStr = String(format: "%.1f",updatedHeight*100)
+                                let lengthIncmStr = String(format: "%.1f",updatedLength*100)
 
                                 if(tapped2){
                                     centerPosition = SCNVector3(x: corners.rbh.x - Float(updatedWidth/2), y: corners.rbh.y - Float(updatedHeight/2), z: corners.rbh.z + Float(updatedLength/2))
@@ -1137,7 +1227,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                                 setSpherePosition()
                                 removeAllEdges()
                                 setEdges()
-                                colorEdges()
+                                colorEdgesBlue()
                                 
                                 //update diagonals
                                 if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -1194,7 +1284,6 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     let scalar2 = dotProduct(vecA: vecA , vecB: dirVector2)  / dotProduct(vecA: dirVector2, vecB: dirVector2)
                     let scaledDirVec = CGPoint(x: dirVector2.x * scalar2, y: dirVector2.y * scalar2)
                     let projectedPoint2 = CGPoint(x: screenCorners.lfh.x + scaledDirVec.x, y: screenCorners.lfh.y + scaledDirVec.y)
-                    print("projection: \(projectedPoint2)")
                     var hitTestResult = sceneView.hitTest(projectedPoint2, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                         for hit in hitTestResult{
                             if hit.node == line2{
@@ -1204,9 +1293,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             updatedWidth = originalWidth * (scaleFactor)
                             updatedLength = originalLength * (scaleFactor)
                                 
-                            let widthIncmStr = String(format: "%.2f",updatedWidth*100)
-                            let heightIncmStr = String(format: "%.2f",updatedHeight*100)
-                            let lengthIncmStr = String(format: "%.2f",updatedLength*100)
+                            let widthIncmStr = String(format: "%.1f",updatedWidth*100)
+                            let heightIncmStr = String(format: "%.1f",updatedHeight*100)
+                            let lengthIncmStr = String(format: "%.1f",updatedLength*100)
 
                             if(tapped3){
                                 centerPosition = SCNVector3(x: corners.lfh.x + Float(updatedWidth/2), y: corners.lfh.y - Float(updatedHeight/2), z: corners.lfh.z - Float(updatedLength/2))
@@ -1258,7 +1347,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdges()
+                            colorEdgesBlue()
 
                             if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
                                 line1.removeFromParentNode()
@@ -1314,7 +1403,6 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     let scalar4 = dotProduct(vecA: vecA , vecB: dirVector4)  / dotProduct(vecA: dirVector4, vecB: dirVector4)
                     let scaledDirVec = CGPoint(x: dirVector4.x * scalar4, y: dirVector4.y * scalar4)
                     let projectedPoint4 = CGPoint(x: screenCorners.lbh.x + scaledDirVec.x, y: screenCorners.lbh.y + scaledDirVec.y)
-                    print("projection: \(projectedPoint4)")
                     var hitTestResult = sceneView.hitTest(projectedPoint4, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                         for hit in hitTestResult{
                         //line4.opacity = 0.1
@@ -1325,9 +1413,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                                 updatedWidth = originalWidth * (scaleFactor)
                                 updatedLength = originalLength * (scaleFactor)
                                 
-                                let widthIncmStr = String(format: "%.2f",updatedWidth*100)
-                                let heightIncmStr = String(format: "%.2f",updatedHeight*100)
-                                let lengthIncmStr = String(format: "%.2f",updatedLength*100)
+                                let widthIncmStr = String(format: "%.1f",updatedWidth*100)
+                                let heightIncmStr = String(format: "%.1f",updatedHeight*100)
+                                let lengthIncmStr = String(format: "%.1f",updatedLength*100)
 
                                 if(tapped4){
                                     centerPosition = SCNVector3(x: corners.lbh.x + Float(updatedWidth/2), y: corners.lbh.y - Float(updatedHeight/2), z: corners.lbh.z + Float(updatedLength/2))
@@ -1379,7 +1467,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                                 setSpherePosition()
                                 removeAllEdges()
                                 setEdges()
-                                colorEdges()
+                                colorEdgesBlue()
                                 
                                 //update diagonals
                                 if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
@@ -1446,37 +1534,74 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 tapped6 = false
                 tapped7 = false
                 tapped8 = false
-                selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                
+                if training{
+                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                }
+                else{
+                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                }
+                
                 self.selectedCorner = SCNNode()
                 text1.opacity = 0.01
                 text2.opacity = 0.01
                 text3.opacity = 0.01
-
-                //set boundingBox color back to blue
-                edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+            }
+        }
+        
+        if recStarted && selected{
+            if userStudyReps < 6{
+                if confirmPressed{
+                    
+                    elapsedTime = endTime.timeIntervalSince(startTime)
+                    
+                    self.recordManager.addNewRecord(withIdentifier: self.pluginIdentifier, andData: [
+                    "timestamp" : "\(Date().millisecondsSince1970)",
+                    "userStudyReps" : "\(userStudyReps)",
+                    "originalWidth": "\(originalWidth)",
+                    "originalHeight": "\(originalHeight)",
+                    "originalLength": "\(originalLength)",
+                    "finalWidthExact" : "\(updatedWidth)",
+                    "finalHeightExact" : "\(updatedHeight)",
+                    "finalLengthExact" : "\(updatedLength)",
+                    "finalWidthRounded" : "\(widthIncmStr)",
+                    "finalHeightRounded" : "\(heightIncmStr)",
+                    "finalLengthRounded" : "\(lengthIncmStr)",
+                    "scaleFactor": "\(scaleFactor)",
+                    "number of scale attempts": "\(selectionCounter)",
+                    "selectedCorner" : "\(String(describing:selectedCorner.name))",
+                    "target side to scale": "\(target)",
+                    "target size:": "\(randomValue)",
+                    "task time" : "\(elapsedTime)"
+                    ])
+                    
+                    print("timestamp: ", Date().millisecondsSince1970)
+                    print("userStudyReps: ", userStudyReps)
+                    print("selection counter: ", selectionCounter)
+                    print("finalWidthExact :", updatedWidth)
+                    print("finalHeightExact: ", updatedHeight)
+                    print("finalLengthExact: ", updatedLength)
+                    print("finalWidthRounded: ", widthIncmStr)
+                    print("finalHeightRounded: ", heightIncmStr)
+                    print("finalLengthRounded: ", lengthIncmStr)
+                    print("numberOfSelections: ", selectionCounter)
+                    print("scaleFactor: ", scaleFactor)
+                    print("time: ", elapsedTime)
+                    print("selectedCorner: ", selectedCorner.name)
+                    print("target side to scale", target)
+                    print("target size:", randomValue)
+                    
+                    userStudyReps += 1
+                    confirmPressed = false
+                    reset()
+                }
+                if undoPressed{
+                    reset()
+                }
+            }else{
+                DispatchQueue.main.async {
+                    self.instructLabel.text = "You finished"
+                }
             }
         }
     }
@@ -1485,6 +1610,26 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         self.currentScene = scene
         self.currentView = view
+        
+        self.recStarted = false
+        self.finished = false
+        self.training = true
+        
+        confirm.isHidden = true
+        
+        recordManager.setPluginsLocked(locked: true)
+        if(self.recordManager != nil && self.recordManager.currentActiveUserID != nil){
+            self.targetLabel.text = ""
+            self.instructLabel.text = ""
+            self.headingLabel.text = "TRAINING: DirectPen"
+            self.headingLabel.textColor = UIColor.systemOrange
+        }else{
+            self.instructLabel.text = "User ID missing!"
+            self.headingLabel.textColor = UIColor.red
+            self.targetLabel.text = ""
+            self.headingLabel.text = ""
+            return
+        }
         
         //define r2d2
         let starwars = SCNScene(named: "art.scnassets/R2D2/r2d2Center.dae")
@@ -1514,7 +1659,6 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
             boundingBox.position = SCNVector3(0,0,-0.3)
             centerPosition = boundingBox.position
-            print("position:\(boundingBox.position)")
             boundingBox.name = "currentBoundingBox"
             boundingBox.opacity = 0.01
             scene.drawingNode.addChildNode(boundingBox)
@@ -1541,7 +1685,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if sphere1 != scene.drawingNode.childNode(withName: "lbdCorner", recursively: false){
             sphere1.position = corners.lbd
             sphere1.geometry = SCNSphere(radius: 0.008)
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere1.name = "lbdCorner"
             scene.drawingNode.addChildNode(sphere1)
             }
@@ -1551,8 +1695,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere2 != scene.drawingNode.childNode(withName: "lfdCorner", recursively: false){
             sphere2.position = corners.lfd
-            sphere2.geometry = SCNSphere(radius: 0.008)
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere2.geometry = SCNSphere(radius: 0.01)
+            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere2.name = "lfdCorner"
             scene.drawingNode.addChildNode(sphere2)
             }
@@ -1562,8 +1706,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere3 != scene.drawingNode.childNode(withName: "rbdCorner", recursively: false){
             sphere3.position = corners.rbd
-            sphere3.geometry = SCNSphere(radius: 0.008)
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere3.geometry = SCNSphere(radius: 0.01)
+            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere3.name = "rbdCorner"
             scene.drawingNode.addChildNode(sphere3)
             }
@@ -1573,8 +1717,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere4 != scene.drawingNode.childNode(withName: "rfdCorner", recursively: false){
             sphere4.position = corners.rfd
-            sphere4.geometry = SCNSphere(radius: 0.008)
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere4.geometry = SCNSphere(radius: 0.01)
+            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere4.name = "rfdCorner"
             scene.drawingNode.addChildNode(sphere4)
             }
@@ -1584,8 +1728,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere5 != scene.drawingNode.childNode(withName: "lbhCorner", recursively: false){
             sphere5.position = corners.lbh
-            sphere5.geometry = SCNSphere(radius: 0.008)
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere5.geometry = SCNSphere(radius: 0.01)
+            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere5.name = "lbhCorner"
             scene.drawingNode.addChildNode(sphere5)
             }
@@ -1595,8 +1739,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere6 != scene.drawingNode.childNode(withName: "lfhCorner", recursively: false){
             sphere6.position = corners.lfh
-            sphere6.geometry = SCNSphere(radius: 0.008)
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere6.geometry = SCNSphere(radius: 0.01)
+            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere6.name = "lfhCorner"
             scene.drawingNode.addChildNode(sphere6)
             }
@@ -1606,8 +1750,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere7 != scene.drawingNode.childNode(withName: "rbhCorner", recursively: false){
             sphere7.position = corners.rbh
-            sphere7.geometry = SCNSphere(radius: 0.008)
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere7.geometry = SCNSphere(radius: 0.01)
+            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere7.name = "rbhCorner"
             scene.drawingNode.addChildNode(sphere7)
             }
@@ -1617,8 +1761,8 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere8 != scene.drawingNode.childNode(withName: "rfhCorner", recursively: false){
             sphere8.position = corners.rfh
-            sphere8.geometry = SCNSphere(radius: 0.008)
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere8.geometry = SCNSphere(radius: 0.01)
+            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere8.name = "rfhCorner"
             scene.drawingNode.addChildNode(sphere8)
             }
@@ -1828,6 +1972,56 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.currentView = nil
     }
     
+    @IBAction func undoButtonPressed(_ sender: Any) {
+        self.undoPressed = true
+    }
+    @IBAction func startedRecording(_ sender: Any) {
+        recStarted = true
+        recordingButton.isHidden = true
+        confirmButton.isHidden =  false
+        selected = false
+        training = false
+        reset()
+        colorEdgesBlue()
+        colorCornersBlue()
+        
+        //compute random width/height/length users should scale the object to
+        let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+        let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+        let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+        
+        //Vary between width/ height/length
+        let randomTarget = Int.random(in: 1...3)
+        if randomTarget == 1{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Width: \(randomWidth)"
+                self.target = "width"
+                self.randomValue = randomWidth
+            }
+        }
+        if randomTarget == 2{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Height: \(randomHeight)"
+                self.target = "height"
+                self.randomValue = randomHeight
+            }
+        }
+        if randomTarget == 3{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Length: \(randomLength)"
+                self.target = "length"
+                self.randomValue = randomLength
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.headingLabel.text = ""
+            self.instructLabel.text = ""
+        }
+    }
+    @IBAction func confirmButtonPressed(_ sender: Any) {
+        self.confirmPressed = true
+    }
 }
 
 

@@ -1784,12 +1784,13 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if(self.recordManager != nil && self.recordManager.currentActiveUserID != nil){
             self.targetLabel.text = ""
             self.instructLabel.text = ""
-            self.headingLabel.text = "TRAINING"
+            self.headingLabel.text = "TRAINING: Pinching"
             self.headingLabel.textColor = UIColor.systemOrange
         }else{
             self.instructLabel.text = "User ID missing!"
             self.targetLabel.text = ""
             self.headingLabel.text = ""
+            return
         }
         
         self.tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
@@ -2113,7 +2114,7 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         confirmButton.isHidden =  false
         selected = false
         training = false
-        
+        reset()
         colorEdgesBlue()
         colorCornersBlue()
         

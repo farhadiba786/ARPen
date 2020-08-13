@@ -14,7 +14,15 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     //reference to userStudyRecordManager to add new records
     var recordManager: UserStudyRecordManager!
 
+    private var recStarted :Bool = false
+    private var finished :Bool = false
+    private var training :Bool = false
+    
+    var confirmPressed : Bool = false
+    var undoPressed : Bool = false
+    
     var currentPoint = CGPoint()
+    var scaleFactor : Float = 0
 
     //Variables for bounding Box updates
     var centerPosition = SCNVector3()
@@ -23,7 +31,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var updatedLength : Float = 0
     //l = left, r = right, b = back, f = front, d = down, h = high
     var corners : (lbd : SCNVector3, lfd : SCNVector3, rbd : SCNVector3, rfd : SCNVector3, lbh : SCNVector3, lfh : SCNVector3, rbh : SCNVector3, rfh : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0))
-     var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
+    
+    var screenCorners : (lbd : CGPoint, lfd : CGPoint, rbd : CGPoint, rfd : CGPoint, lbh : CGPoint, lfh : CGPoint, rbh : CGPoint, rfh : CGPoint) = (CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0),CGPoint(x: 0, y: 0))
+    
     var edges : (e1 : SCNVector3, e2 : SCNVector3, e3 : SCNVector3, e4 : SCNVector3, e5 : SCNVector3, e6 : SCNVector3, e7 : SCNVector3, e8 : SCNVector3, e9 : SCNVector3, e10 : SCNVector3, e11 : SCNVector3, e12 : SCNVector3) = (SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0),SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0), SCNVector3Make(0, 0, 0))
 
     //Variables to ensure only one Corner an be selected at a time
@@ -52,19 +62,40 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     var dirVector3 = CGPoint()
     var dirVector4 = CGPoint()
     
+    //variables for initial bounding Box
+    var originalWidth : Float = 0
+    var originalHeight : Float = 0
+    var originalLength : Float = 0
+    var originalScale = SCNVector3()
+    
     //Variables for text
     var widthIncmStr : String = ""
     var heightIncmStr : String = ""
     var lengthIncmStr : String = ""
 
-    //variables for initial bounding Box
-    var originalWidth : Float = 0
-    var originalHeight : Float = 0
-    var originalLength : Float = 0
+    //Variables For USER STUDY TASK
+    var userStudyReps = 0
+    var selectionCounter = 0
 
-    //USER STUDY
-    var endTime = Date()
+    //variables for measuring
+    var finalWidth : Float = 0
+    var finalHeight : Float = 0
+    var finalLength : Float = 0
     
+    var randomValue: String = ""
+    var target = String()
+    
+    var startTime : Date = Date()
+    var endTime : Date = Date()
+    var elapsedTime: Double = 0.0
+    
+   
+    @IBOutlet weak var undoButton: UIButton!
+    @IBOutlet weak var confirmButton: UIButton!
+    @IBOutlet weak var recordingButton: UIButton!
+    @IBOutlet weak var targetLabel: UILabel!
+    @IBOutlet weak var instructLabel: UILabel!
+    @IBOutlet weak var headingLabel: UILabel!
     override init() {
         super.init()
     
@@ -73,9 +104,101 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.pluginIdentifier = "PenRay"
         self.needsBluetoothARPen = false
         self.pluginDisabledImage = UIImage.init(named: "ARMenusPluginDisabled")
+        nibNameOfCustomUIView = "PenRayScalingPlugin"
         
     }
     
+    override func reset(){
+        guard let scene = self.currentScene else {return}
+        guard let box = scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false) else{
+            print("not found")
+            return
+           }
+           guard let r2d2 = scene.drawingNode.childNode(withName: "currentr2d2", recursively: false) else{
+               print("not found")
+               return
+           }
+            guard let text1 = scene.drawingNode.childNode(withName: "widthString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text2 = scene.drawingNode.childNode(withName: "heightString", recursively: false) else{
+              print("not found")
+              return
+             }
+            guard let text3 = scene.drawingNode.childNode(withName: "lengthString", recursively: false) else{
+              print("not found")
+              return
+             }
+           guard let sceneView = self.currentView else { return }
+        
+            //reset box and model
+            selected = false
+            tapped1 = false
+            tapped2 = false
+            tapped3 = false
+            tapped4 = false
+            tapped5 = false
+            tapped6 = false
+            tapped7 = false
+            tapped8 = false
+
+            //compute random width/height/length users should scale the object to
+            let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+            let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+            let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+            
+            //Vary between width/ height/length
+            let randomTarget = Int.random(in: 1...3)
+            if randomTarget == 1{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Width: \(randomWidth)"
+                    self.target = "width"
+                    self.randomValue = randomWidth
+                }
+            }
+            if randomTarget == 2{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Height: \(randomHeight)"
+                    self.target = "height"
+                    self.randomValue = randomHeight
+                }
+            }
+            if randomTarget == 3{
+                DispatchQueue.main.async {
+                    self.targetLabel.text = "Length: \(randomLength)"
+                    self.target = "length"
+                    self.randomValue = randomLength
+                }
+            }
+        
+            selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            colorEdgesBlue()
+            
+            updatedWidth = originalWidth
+            updatedHeight = originalHeight
+            updatedLength = originalLength
+            
+            box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+            box.position = SCNVector3(0,0,-0.3)
+            centerPosition = box.position
+            box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
+            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.position = box.position
+            
+            setCorners()
+            setSpherePosition()
+            removeAllEdges()
+            setEdges()
+            
+            text1.opacity = 0.01
+            text2.opacity = 0.01
+            text3.opacity = 0.01
+            //measurement variables
+            selectionCounter = 0
+            elapsedTime = 0.0
+    }
+
     //need to adjust the corners while scaling visually
     func setSpherePosition(){
         guard let scene = self.currentScene else {return}
@@ -315,7 +438,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     }
     
     //changes color to yellow to visualize activated boundingBox
-    func colorEdges(){
+    func colorEdgesBlue(){
         guard let scene = self.currentScene else {return}
         guard let edge1 = scene.drawingNode.childNode(withName: "edge1", recursively: false) else{
             print("not found")
@@ -366,30 +489,78 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             return
         }
         
-        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge1.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge2.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge3.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge4.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge5.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge6.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge7.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge8.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge9.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge10.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge11.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge12.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        
+    }
+    
+    //changes color to blue to visualize activated boundingBox
+    func colorCornersBlue(){
+        guard let scene = self.currentScene else {return}
+        guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner2 = scene.drawingNode.childNode(withName: "lfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner3 = scene.drawingNode.childNode(withName: "rbdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner4 = scene.drawingNode.childNode(withName: "rfdCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner5 = scene.drawingNode.childNode(withName: "lbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner6 = scene.drawingNode.childNode(withName: "lfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner7 = scene.drawingNode.childNode(withName: "rbhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        guard let corner8 = scene.drawingNode.childNode(withName: "rfhCorner", recursively: false) else{
+            print("not found")
+            return
+        }
+        
+        corner1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+        corner8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+       
         
     }
     
@@ -403,7 +574,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         lineGeometry.radius = 0.001
         lineGeometry.height = CGFloat(distance)
         lineGeometry.radialSegmentCount = 5
-        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemBlue
+        lineGeometry.firstMaterial!.diffuse.contents = UIColor.systemOrange
 
         let lineNode = SCNNode(geometry: lineGeometry)
         lineNode.opacity = 0.01
@@ -562,7 +733,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner1
                          tapped1 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                          box.position = corners.rfh
@@ -601,7 +773,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner2
                          tapped2 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                          box.position = corners.rbh
@@ -638,7 +811,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner3
                          tapped3 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                          box.position = corners.lfh
@@ -677,7 +851,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner4
                          tapped4 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
                          box.position = corners.lbh
@@ -716,7 +891,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner5
                          tapped5 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                          box.position = corners.rfd
@@ -756,7 +932,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner6
                          tapped6 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                          box.position = corners.rbd
@@ -795,7 +972,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner7
                          tapped7 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                          box.position = corners.lfd
@@ -833,7 +1011,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          selected = true
                          selectedCorner = corner8
                          tapped8 = true
-                         colorEdges()
+                         colorEdgesBlue()
+                         hit.node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemPink
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                          box.position = corners.lbd
@@ -937,7 +1116,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdges()
+                            colorEdgesBlue()
+                            
                             
                             //update diagonals
                             if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -1057,7 +1237,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdges()
+                            colorEdgesBlue()
+                            
                             
                             //update diagonals
                             if let line2 = currentScene?.drawingNode.childNode(withName: "diagonal2", recursively: false){
@@ -1178,7 +1359,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         setSpherePosition()
                         removeAllEdges()
                         setEdges()
-                        colorEdges()
+                        colorEdgesBlue()
+                       
 
                         if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
                             line1.removeFromParentNode()
@@ -1299,8 +1481,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                             setSpherePosition()
                             removeAllEdges()
                             setEdges()
-                            colorEdges()
-                            
+                            colorEdgesBlue()
+                           
                             //update diagonals
                             if let line1 = currentScene?.drawingNode.childNode(withName: "diagonal1", recursively: false){
                                 line1.removeFromParentNode()
@@ -1364,42 +1546,79 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 tapped6 = false
                 tapped7 = false
                 tapped8 = false
-                selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                if training{
+                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                }
+                else{
+                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                }
                 self.selectedCorner = SCNNode()
                 text1.opacity = 0.01
                 text2.opacity = 0.01
                 text3.opacity = 0.01
 
-                //set boundingBox color back to blue
-                edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+                
             }
             //if task is ended at this point the left amount of degrees between the objects is recorded
 
             //in case task is ended at this point record endTime
             endTime = Date()
+        }
+        
+        if recStarted && selected{
+            if userStudyReps < 6{
+                if confirmPressed{
+                    
+                    elapsedTime = endTime.timeIntervalSince(startTime)
+                    
+                    self.recordManager.addNewRecord(withIdentifier: self.pluginIdentifier, andData: [
+                    "timestamp" : "\(Date().millisecondsSince1970)",
+                    "userStudyReps" : "\(userStudyReps)",
+                    "originalWidth": "\(originalWidth)",
+                    "originalHeight": "\(originalHeight)",
+                    "originalLength": "\(originalLength)",
+                    "finalWidthExact" : "\(updatedWidth)",
+                    "finalHeightExact" : "\(updatedHeight)",
+                    "finalLengthExact" : "\(updatedLength)",
+                    "finalWidthRounded" : "\(widthIncmStr)",
+                    "finalHeightRounded" : "\(heightIncmStr)",
+                    "finalLengthRounded" : "\(lengthIncmStr)",
+                    "scaleFactor": "\(scaleFactor)",
+                    "number of scale attempts": "\(selectionCounter)",
+                    "selectedCorner" : "\(String(describing:selectedCorner.name))",
+                    "target side to scale": "\(target)",
+                    "target size:": "\(randomValue)",
+                    "task time" : "\(elapsedTime)"
+                    ])
+                    
+                    print("timestamp: ", Date().millisecondsSince1970)
+                    print("userStudyReps: ", userStudyReps)
+                    print("selection counter: ", selectionCounter)
+                    print("finalWidthExact :", updatedWidth)
+                    print("finalHeightExact: ", updatedHeight)
+                    print("finalLengthExact: ", updatedLength)
+                    print("finalWidthRounded: ", widthIncmStr)
+                    print("finalHeightRounded: ", heightIncmStr)
+                    print("finalLengthRounded: ", lengthIncmStr)
+                    print("numberOfSelections: ", selectionCounter)
+                    print("scaleFactor: ", scaleFactor)
+                    print("time: ", elapsedTime)
+                    print("selectedCorner: ", selectedCorner.name)
+                    print("target side to scale", target)
+                    print("target size:", randomValue)
+                    
+                    userStudyReps += 1
+                    confirmPressed = false
+                    reset()
+                }
+                if undoPressed{
+                    reset()
+                }
+            }else{
+                DispatchQueue.main.async {
+                    self.instructLabel.text = "You finished"
+                }
+            }
         }
     }
      
@@ -1407,6 +1626,26 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         self.currentScene = scene
         self.currentView = view
+        
+        self.recStarted = false
+        self.finished = false
+        self.training = true
+        
+        confirmButton.isHidden = true
+        
+        recordManager.setPluginsLocked(locked: true)
+        if(self.recordManager != nil && self.recordManager.currentActiveUserID != nil){
+            self.targetLabel.text = ""
+            self.instructLabel.text = ""
+            self.headingLabel.text = "TRAINING: PenRay"
+            self.headingLabel.textColor = UIColor.systemOrange
+        }else{
+            self.instructLabel.text = "User ID missing!"
+            self.headingLabel.textColor = UIColor.red
+            self.targetLabel.text = ""
+            self.headingLabel.text = ""
+            return
+        }
         
         //define r2d2
         let starwars = SCNScene(named: "art.scnassets/R2D2/r2d2Center.dae")
@@ -1463,7 +1702,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if sphere1 != scene.drawingNode.childNode(withName: "lbdCorner", recursively: false){
             sphere1.position = corners.lbd
             sphere1.geometry = SCNSphere(radius: 0.008)
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere1.name = "lbdCorner"
             scene.drawingNode.addChildNode(sphere1)
             }
@@ -1473,8 +1712,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere2 != scene.drawingNode.childNode(withName: "lfdCorner", recursively: false){
             sphere2.position = corners.lfd
-            sphere2.geometry = SCNSphere(radius: 0.008)
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere2.geometry = SCNSphere(radius: 0.01)
+            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere2.name = "lfdCorner"
             scene.drawingNode.addChildNode(sphere2)
             }
@@ -1484,8 +1723,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere3 != scene.drawingNode.childNode(withName: "rbdCorner", recursively: false){
             sphere3.position = corners.rbd
-            sphere3.geometry = SCNSphere(radius: 0.008)
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere3.geometry = SCNSphere(radius: 0.01)
+            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere3.name = "rbdCorner"
             scene.drawingNode.addChildNode(sphere3)
             }
@@ -1495,8 +1734,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere4 != scene.drawingNode.childNode(withName: "rfdCorner", recursively: false){
             sphere4.position = corners.rfd
-            sphere4.geometry = SCNSphere(radius: 0.008)
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere4.geometry = SCNSphere(radius: 0.01)
+            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere4.name = "rfdCorner"
             scene.drawingNode.addChildNode(sphere4)
             }
@@ -1506,8 +1745,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere5 != scene.drawingNode.childNode(withName: "lbhCorner", recursively: false){
             sphere5.position = corners.lbh
-            sphere5.geometry = SCNSphere(radius: 0.008)
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere5.geometry = SCNSphere(radius: 0.01)
+            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere5.name = "lbhCorner"
             scene.drawingNode.addChildNode(sphere5)
             }
@@ -1517,8 +1756,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere6 != scene.drawingNode.childNode(withName: "lfhCorner", recursively: false){
             sphere6.position = corners.lfh
-            sphere6.geometry = SCNSphere(radius: 0.008)
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere6.geometry = SCNSphere(radius: 0.01)
+            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere6.name = "lfhCorner"
             scene.drawingNode.addChildNode(sphere6)
             }
@@ -1528,8 +1767,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere7 != scene.drawingNode.childNode(withName: "rbhCorner", recursively: false){
             sphere7.position = corners.rbh
-            sphere7.geometry = SCNSphere(radius: 0.008)
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere7.geometry = SCNSphere(radius: 0.01)
+            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere7.name = "rbhCorner"
             scene.drawingNode.addChildNode(sphere7)
             }
@@ -1539,8 +1778,8 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         
         if sphere8 != scene.drawingNode.childNode(withName: "rfhCorner", recursively: false){
             sphere8.position = corners.rfh
-            sphere8.geometry = SCNSphere(radius: 0.008)
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            sphere8.geometry = SCNSphere(radius: 0.01)
+            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
             sphere8.name = "rfhCorner"
             scene.drawingNode.addChildNode(sphere8)
             }
@@ -1611,7 +1850,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let displayedWidth = SCNText(string: "", extrusionDepth: 0.2)
         //displayedWidth.font = UIFont (name: "Arial", size: 3)
         let material = SCNMaterial()
-        material.diffuse.contents = UIColor.magenta
+        material.diffuse.contents = UIColor.white
         displayedWidth.materials = [material]
         let widthString = SCNNode(geometry: displayedWidth)
         
@@ -1751,6 +1990,57 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.currentView = nil
     }
     
+
+    @IBAction func recordingStarted(_ sender: Any) {
+        recStarted = true
+        recordingButton.isHidden = true
+        confirmButton.isHidden =  false
+        selected = false
+        training = false
+        reset()
+        colorEdgesBlue()
+        colorCornersBlue()
+        
+        //compute random width/height/length users should scale the object to
+        let randomWidth = String(format: "%.1f",Float.random(in: 3...15))
+        let randomHeight = String(format: "%.1f",Float.random(in: 8...25))
+        let randomLength = String(format: "%.1f",Float.random(in: 3...12))
+        
+        //Vary between width/ height/length
+        let randomTarget = Int.random(in: 1...3)
+        if randomTarget == 1{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Width: \(randomWidth)"
+                self.target = "width"
+                self.randomValue = randomWidth
+            }
+        }
+        if randomTarget == 2{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Height: \(randomHeight)"
+                self.target = "height"
+                self.randomValue = randomHeight
+            }
+        }
+        if randomTarget == 3{
+            DispatchQueue.main.async {
+                self.targetLabel.text = "Length: \(randomLength)"
+                self.target = "length"
+                self.randomValue = randomLength
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.headingLabel.text = ""
+            self.instructLabel.text = ""
+        }
+    }
+    @IBAction func confirmButtonPressed(_ sender: Any) {
+        self.confirmPressed = true
+    }
+    @IBAction func undoButtonPressed(_ sender: Any) {
+        self.undoPressed = true
+    }
 }
 
 

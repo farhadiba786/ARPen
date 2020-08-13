@@ -1208,7 +1208,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 let scalar3 = dotProduct(vecA: vecA , vecB: dirVector3)  / dotProduct(vecA: dirVector3, vecB: dirVector3)
                 let scaledDirVec = CGPoint(x: dirVector3.x * scalar3, y: dirVector3.y * scalar3)
                 let projectedPoint3 = CGPoint(x: screenCorners.rbh.x + scaledDirVec.x, y: screenCorners.rbh.y + scaledDirVec.y)
-                print("projection: \(projectedPoint3)")
+                //print("projection: \(projectedPoint3)")
                 var hitTestResult = sceneView.hitTest(projectedPoint3, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                 for hit in hitTestResult{
                     if hit.node == line3{
@@ -1326,7 +1326,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             let scalar2 = dotProduct(vecA: vecA , vecB: dirVector2)  / dotProduct(vecA: dirVector2, vecB: dirVector2)
             let scaledDirVec = CGPoint(x: dirVector2.x * scalar2, y: dirVector2.y * scalar2)
             let projectedPoint2 = CGPoint(x: screenCorners.lfh.x + scaledDirVec.x, y: screenCorners.lfh.y + scaledDirVec.y)
-            print("projection: \(projectedPoint2)")
+            //print("projection: \(projectedPoint2)")
             var hitTestResult = sceneView.hitTest(projectedPoint2, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                 for hit in hitTestResult{
                     if hit.node == line2{
@@ -1446,7 +1446,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             let scalar4 = dotProduct(vecA: vecA , vecB: dirVector4)  / dotProduct(vecA: dirVector4, vecB: dirVector4)
             let scaledDirVec = CGPoint(x: dirVector4.x * scalar4, y: dirVector4.y * scalar4)
             let projectedPoint4 = CGPoint(x: screenCorners.lbh.x + scaledDirVec.x, y: screenCorners.lbh.y + scaledDirVec.y)
-            print("projection: \(projectedPoint4)")
+            //print("projection: \(projectedPoint4)")
             var hitTestResult = sceneView.hitTest(projectedPoint4, options: [SCNHitTestOption.searchMode : SCNHitTestSearchMode.all.rawValue] )
                 for hit in hitTestResult{
                 //line4.opacity = 0.1
@@ -1578,7 +1578,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 tapped7 = false
                 tapped8 = false
                 if training{
-                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.orange
+                    selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
                 }
                 else{
                     selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
@@ -1588,31 +1588,6 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 text2.opacity = 0.01
                 text3.opacity = 0.01
                 
-                //set boundingBox color back to blue
-                edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
-                edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
-                edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
             }
         }
     }
@@ -1833,34 +1808,34 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             return
         }
         
-        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge1.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge2.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge3.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge4.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge5.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge6.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge7.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge8.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge9.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge10.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge11.geometry?.firstMaterial?.emission.contents = UIColor.yellow
-        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGray
-        edge12.geometry?.firstMaterial?.emission.contents = UIColor.yellow
+        edge1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge1.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge2.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge3.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge4.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge5.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge6.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge7.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge8.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge9.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge10.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge11.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        edge12.geometry?.firstMaterial?.emission.contents = UIColor.systemBlue
         
     }
     
-    //changes color to yellow to visualize activated boundingBox
+    //changes color to blue to visualize activated boundingBox
     func colorCornersBlue(){
         guard let scene = self.currentScene else {return}
         guard let corner1 = scene.drawingNode.childNode(withName: "lbdCorner", recursively: false) else{
@@ -2091,12 +2066,14 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         if(self.recordManager != nil && self.recordManager.currentActiveUserID != nil){
             self.targetLabel.text = ""
             self.instructLabel.text = ""
-            self.headingLabel.text = "TRAINING"
+            self.headingLabel.text = "TRAINING: Scrolling"
             self.headingLabel.textColor = UIColor.systemOrange
         }else{
             self.instructLabel.text = "User ID missing!"
+            self.headingLabel.textColor = UIColor.red
             self.targetLabel.text = ""
             self.headingLabel.text = ""
+            return
         }
         //self.tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
        // self.currentView?.addGestureRecognizer(tapGesture!)
@@ -2309,7 +2286,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let displayedWidth = SCNText(string: "", extrusionDepth: 0.2)
         //displayedWidth.font = UIFont (name: "Arial", size: 3)
         let material = SCNMaterial()
-        material.diffuse.contents = UIColor.magenta
+        material.diffuse.contents = UIColor.white
         displayedWidth.materials = [material]
         let widthString = SCNNode(geometry: displayedWidth)
         
@@ -2464,7 +2441,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         confirmButton.isHidden =  false
         selected = false
         training = false
-        
+        reset()
         colorEdgesBlue()
         colorCornersBlue()
         
