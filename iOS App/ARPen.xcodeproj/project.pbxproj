@@ -882,6 +882,7 @@
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = ARPen/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "de.rwth-aachen.hci.arpen";
@@ -906,6 +907,7 @@
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = ARPen/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "de.rwth-aachen.hci.arpen";

@@ -177,7 +177,7 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             updatedLength = originalLength
             
             box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-            box.position = SCNVector3(0,0,-0.3)
+            box.position = SCNVector3(0,0.2,0)
             centerPosition = box.position
             box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
             r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
@@ -1727,9 +1727,6 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     "finalWidthExact" : "\(updatedWidth)",
                     "finalHeightExact" : "\(updatedHeight)",
                     "finalLengthExact" : "\(updatedLength)",
-                    "finalWidthRounded" : "\(widthIncmStr)",
-                    "finalHeightRounded" : "\(heightIncmStr)",
-                    "finalLengthRounded" : "\(lengthIncmStr)",
                     "scaleFactor": "\(scaleFactor)",
                     "number of scale attempts": "\(selectionCounter)",
                     "selectedCorner" : "\(String(describing:selectedCorner.name))",
@@ -1744,14 +1741,11 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     print("finalWidthExact :", updatedWidth)
                     print("finalHeightExact: ", updatedHeight)
                     print("finalLengthExact: ", updatedLength)
-                    print("finalWidthRounded: ", widthIncmStr)
-                    print("finalHeightRounded: ", heightIncmStr)
-                    print("finalLengthRounded: ", lengthIncmStr)
                     print("numberOfSelections: ", selectionCounter)
                     print("scaleFactor: ", scaleFactor)
                     print("time: ", elapsedTime)
                     print("selectedCorner: ", selectedCorner.name)
-                    print("target side to scale", target)
+                    print("target side to scale:", target)
                     print("target size:", randomValue)
                     
                     userStudyReps += 1
@@ -1765,6 +1759,7 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 DispatchQueue.main.async {
                     self.instructLabel.text = "You finished"
                 }
+                return
             }
         }
     }
@@ -1814,7 +1809,8 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let OriginalMaxCorner = boundingBoxCorners.1
         let minCorner = SCNVector3(x:OriginalMinCorner.x*0.001,y:OriginalMinCorner.y*0.001,z:OriginalMinCorner.z*0.001)
         let maxCorner = SCNVector3(x:OriginalMaxCorner.x*0.001,y:OriginalMaxCorner.y*0.001,z:OriginalMaxCorner.z*0.001)
-      
+        print ("minCorner: \(minCorner)")
+        print ("maxCorner: \(maxCorner)")
         originalWidth = maxCorner.x - minCorner.x
         originalHeight = maxCorner.z - minCorner.z
         originalLength = maxCorner.y - minCorner.y
@@ -1824,25 +1820,26 @@ class PinchScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         self.updatedLength = originalLength
         
         let box = SCNBox(width: CGFloat(originalWidth*0.01), height: CGFloat(originalHeight*0.01), length: CGFloat(originalLength*0.01), chamferRadius: 0)
-        box.firstMaterial?.isDoubleSided = true
+        //box.firstMaterial?.isDoubleSided = true
         let boundingBox = SCNNode(geometry: box)
         
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             centerPosition = boundingBox.position
             print("position:\(boundingBox.position)")
             boundingBox.name = "currentBoundingBox"
-            boundingBox.opacity = 0.01
+            //boundingBox.opacity = 1
+            boundingBox.geometry?.firstMaterial?.diffuse.contents = UIColor.green
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             
         }
-        
+        print (boundingBox)
         self.originalScale = boundingBox.scale
         setCorners()
-        //print("corners: \(corners)")
+        print("corners: \(corners)")
         
         //visualize lines for edges
         setEdges()

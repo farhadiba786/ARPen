@@ -18,6 +18,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     private var recStarted :Bool = false
     private var finished :Bool = false
     private var training :Bool = false
+    private var success: Bool = false
     
     var confirmPressed : Bool = false
     var undoPressed : Bool = false
@@ -183,7 +184,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             updatedLength = originalLength
             
             box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-            box.position = SCNVector3(0,0,-0.3)
+            box.position = SCNVector3(0,0.2,0)
             centerPosition = box.position
             box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
             r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
@@ -2009,15 +2010,14 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     "finalWidthExact" : "\(updatedWidth)",
                     "finalHeightExact" : "\(updatedHeight)",
                     "finalLengthExact" : "\(updatedLength)",
-                    "finalWidthRounded" : "\(widthIncmStr)",
-                    "finalHeightRounded" : "\(heightIncmStr)",
-                    "finalLengthRounded" : "\(lengthIncmStr)",
+                    
                     "scaleFactor": "\(scaleFactor)",
                     "number of scale attempts": "\(selectionCounter)",
                     "selectedCorner" : "\(String(describing:selectedCorner.name))",
                     "target side to scale": "\(target)",
                     "target size:": "\(randomValue)",
                     "task time" : "\(elapsedTime)"
+                    //"successfully completed" :
                     ])
                     
                     print("timestamp: ", Date().millisecondsSince1970)
@@ -2026,9 +2026,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     print("finalWidthExact :", updatedWidth)
                     print("finalHeightExact: ", updatedHeight)
                     print("finalLengthExact: ", updatedLength)
-                    print("finalWidthRounded: ", widthIncmStr)
-                    print("finalHeightRounded: ", heightIncmStr)
-                    print("finalLengthRounded: ", lengthIncmStr)
+                    
                     print("numberOfSelections: ", selectionCounter)
                     print("scaleFactor: ", scaleFactor)
                     print("time: ", elapsedTime)
@@ -2047,6 +2045,7 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 DispatchQueue.main.async {
                     self.instructLabel.text = "You finished"
                 }
+                return
             }
         }
     }
@@ -2110,14 +2109,14 @@ class ScrollScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let boundingBox = SCNNode(geometry: box)
         
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             centerPosition = boundingBox.position
             boundingBox.name = "currentBoundingBox"
             boundingBox.opacity = 0.01
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             
         }
         

@@ -191,10 +191,10 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             updatedLength = originalLength
             
             box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-            box.position = SCNVector3(0,0,-0.3)
+            box.position = SCNVector3(0,0.2,0)
             centerPosition = box.position
             box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
-            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.scale = SCNVector3(0.001,0.001,0.001)
             r2d2.position = box.position
             
             setCorners()
@@ -1568,6 +1568,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 DispatchQueue.main.async {
                     self.instructLabel.text = "You finished"
                 }
+                return
             }
         }
     }
@@ -1641,7 +1642,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let boundingBox = SCNNode(geometry: box)
         
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             centerPosition = boundingBox.position
             print("position:\(boundingBox.position)")
             boundingBox.name = "currentBoundingBox"
@@ -1649,7 +1650,7 @@ class PointScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             
         }
         

@@ -94,7 +94,6 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     @IBOutlet weak var confirm: UIButton!
     @IBOutlet weak var undoButton: UIButton!
     @IBOutlet weak var recordingButton: UIButton!
-    @IBOutlet weak var confirmButton: UIButton!
     @IBOutlet weak var targetLabel: UILabel!
     @IBOutlet weak var instructLabel: UILabel!
     @IBOutlet weak var headingLabel: UILabel!
@@ -182,11 +181,11 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             updatedLength = originalLength
             
             box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-            box.position = SCNVector3(0,0,-0.3)
+            box.position = SCNVector3(0,0.2,0)
             centerPosition = box.position
             box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
-            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
-            r2d2.position = box.position
+            r2d2.scale = SCNVector3(0.001,0.001,0.001)
+            r2d2.position = centerPosition
             
             setCorners()
             setSpherePosition()
@@ -652,14 +651,18 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             insideSphere  = sphere8
         }
         else{
-            sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
-            sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+            if training{
+                sphere1.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere2.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere3.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere4.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere5.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere6.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere7.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                sphere8.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+            }else{
+                colorCornersBlue()
+            }
         }
     }
     
@@ -803,7 +806,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:lbd --> pivot:rfh
                     if corner == corner1 {
                         if selected == false{
-                            
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner1
                             tapped1 = true
@@ -833,7 +838,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:lfd --> pivot:rbh
                     else if corner == corner2{
                         if selected == false{
-                            
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner2
                             tapped2 = true
@@ -861,7 +868,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rbd --> pivot:lfh
                     else if corner == corner3 {
                         if selected == false{
-                            
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner3
                             tapped3 = true
@@ -891,7 +900,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rfd --> pivot:lbh
                     else if corner == corner4 {
                         if selected == false{
-
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner4
                             tapped4 = true
@@ -921,7 +932,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:lbh --> pivot:rfd
                     else if corner == corner5{
                         if selected == false{
-
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner5
                             tapped5 = true
@@ -951,7 +964,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:lfh --> pivot:rbd
                     else if corner == corner6{
                         if selected == false{
-
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner6
                             tapped6 = true
@@ -981,7 +996,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rbh --> pivot:lfd
                     else if corner == corner7 {
                         if selected == false{
-                            
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner7
                             tapped7 = true
@@ -1010,7 +1027,9 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                     //select:rfh --> pivot:lbd
                     else if corner == corner8 {
                         if selected == false{
-                            
+                            if selectionCounter == 0{
+                                startTime = Date()
+                            }
                             selected = true
                             selectedCorner = corner8
                             tapped8 = true
@@ -1546,6 +1565,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 text1.opacity = 0.01
                 text2.opacity = 0.01
                 text3.opacity = 0.01
+                endTime = Date()
             }
         }
         
@@ -1602,6 +1622,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 DispatchQueue.main.async {
                     self.instructLabel.text = "You finished"
                 }
+                return
             }
         }
     }
@@ -1657,14 +1678,14 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let boundingBox = SCNNode(geometry: box)
         
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             centerPosition = boundingBox.position
             boundingBox.name = "currentBoundingBox"
             boundingBox.opacity = 0.01
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             
         }
         
@@ -1771,18 +1792,18 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         }
         
         //create Object to scale
-               if r2d2 != scene.drawingNode.childNode(withName: "currentr2d2", recursively: false){
-                   //r2d2.position = SCNVector3(-0.05+Float(width/2),-0.05,-0.3+Float(length/2))
-                   r2d2.position = centerPosition
-                   r2d2.name = "currentr2d2"
-                   //r2d2.pivot = SCNMatrix4MakeTranslation(-Float(width/2),0,-Float(length/2))
-                   scene.drawingNode.addChildNode(r2d2)
-                   r2d2.opacity = 1.0
-                   
-               }
-               else{
-                   r2d2.position = centerPosition
-               }
+       if r2d2 != scene.drawingNode.childNode(withName: "currentr2d2", recursively: false){
+           //r2d2.position = SCNVector3(-0.05+Float(width/2),-0.05,-0.3+Float(length/2))
+           r2d2.position = centerPosition
+           r2d2.name = "currentr2d2"
+           //r2d2.pivot = SCNMatrix4MakeTranslation(-Float(width/2),0,-Float(length/2))
+           scene.drawingNode.addChildNode(r2d2)
+           r2d2.opacity = 1.0
+           
+       }
+       else{
+           r2d2.position = centerPosition
+       }
         
         //define initial diagonals
         let vector1 = SCNVector3(corners.lbd.x - corners.rfh.x, corners.lbd.y - corners.rfh.y, corners.lbd.z - corners.rfh.z)
@@ -1978,7 +1999,7 @@ class DirectPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
     @IBAction func startedRecording(_ sender: Any) {
         recStarted = true
         recordingButton.isHidden = true
-        confirmButton.isHidden =  false
+        confirm.isHidden =  false
         selected = false
         training = false
         reset()

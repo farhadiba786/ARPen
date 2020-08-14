@@ -182,10 +182,10 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             updatedLength = originalLength
             
             box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-            box.position = SCNVector3(0,0,-0.3)
+            box.position = SCNVector3(0,0.2,0)
             centerPosition = box.position
             box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
-            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.scale = SCNVector3(0.001,0.001,0.001)
             r2d2.position = box.position
             
             setCorners()
@@ -1977,6 +1977,31 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                         }
                     }
                 }
+            }else{
+                if selected == true{
+                    box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
+                    box.position = SCNVector3(centerPosition.x,centerPosition.y,centerPosition.z)
+                    selected = false
+                    tapped2 = false
+                    tapped3 = false
+                    tapped4 = false
+                    tapped5 = false
+                    tapped6 = false
+                    tapped7 = false
+                    tapped8 = false
+                    if training{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.systemOrange
+                    }
+                    else{
+                        selectedCorner.geometry?.firstMaterial?.diffuse.contents = UIColor.blue
+                    }
+                    self.selectedCorner = SCNNode()
+                    text1.opacity = 0.01
+                    text2.opacity = 0.01
+                    text3.opacity = 0.01
+                    endTime = Date()
+                    
+                }
             }
         }
         
@@ -2033,6 +2058,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 DispatchQueue.main.async {
                     self.instructLabel.text = "You finished"
                 }
+                return
             }
         }
     }
@@ -2093,7 +2119,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let boundingBox = SCNNode(geometry: box)
         
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             centerPosition = boundingBox.position
             print("position:\(boundingBox.position)")
             boundingBox.name = "currentBoundingBox"
@@ -2101,7 +2127,7 @@ class TouchAndPenScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             
         }
         

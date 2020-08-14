@@ -180,10 +180,10 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             updatedLength = originalLength
             
             box.pivot = SCNMatrix4MakeTranslation(0, 0, 0)
-            box.position = SCNVector3(0,0,-0.3)
+            box.position = SCNVector3(0,0.2,0)
             centerPosition = box.position
             box.scale = SCNVector3(originalScale.x, originalScale.y, originalScale.z)
-            r2d2.scale = SCNVector3(originalScale.x*0.001, originalScale.y*0.001, originalScale.z*0.001)
+            r2d2.scale = SCNVector3(0.001,0.001,0.001)
             r2d2.position = box.position
             
             setCorners()
@@ -724,12 +724,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:lbd --> pivot:rfh
                  if hit.node == corner1 {
                      if selected == false{
-                         print("1centerPosition:\(centerPosition)")
-                         print("1updatedHeight: \(updatedHeight)")
-                         print("1updatedWidth: \(updatedWidth)")
-                         print("1updatedLength: \(updatedLength)")
-                         print("1cornersMethod: \(corners)")
-                         
+                         if selectionCounter == 0{
+                             startTime = Date()
+                         }
                          selected = true
                          selectedCorner = corner1
                          tapped1 = true
@@ -738,9 +735,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(abs(corners.rfh.x - centerPosition.x)), Float(abs(corners.rfh.y - centerPosition.y)), Float(abs(corners.rfh.z - centerPosition.z)))
                          box.position = corners.rfh
-                         
-                         print("pivot1: \(box.pivot)")
-                         print("position1: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -764,12 +758,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:lfd --> pivot:rbh
                  else if hit.node == corner2{
                      if selected == false{
-                         print("2centerPosition:\(centerPosition)")
-                         print("2updatedHeight: \(updatedHeight)")
-                         print("2updatedWidth: \(updatedWidth)")
-                         print("2updatedLength: \(updatedLength)")
-                         print("2cornersMethod: \(corners)")
-                         
+                         if selectionCounter == 0{
+                             startTime = Date()
+                         }
                          selected = true
                          selectedCorner = corner2
                          tapped2 = true
@@ -778,9 +769,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbh.x-centerPosition.x), Float(corners.rbh.y-centerPosition.y), Float(corners.rbh.z-centerPosition.z))
                          box.position = corners.rbh
-                         
-                         print("pivot2: \(box.pivot)")
-                         print("position2: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -802,12 +790,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:rbd --> pivot:lfh
                  else if hit.node == corner3 {
                      if selected == false{
-                         print("3centerPosition:\(centerPosition)")
-                         print("3updatedHeight: \(updatedHeight)")
-                         print("3updatedWidth: \(updatedWidth)")
-                         print("3updatedLength: \(updatedLength)")
-                         print("3cornersMethod: \(corners)")
-                         
+                         if selectionCounter == 0{
+                             startTime = Date()
+                         }
                          selected = true
                          selectedCorner = corner3
                          tapped3 = true
@@ -816,9 +801,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfh.x + centerPosition.x), Float( corners.lfh.y - centerPosition.y), Float(corners.lfh.z - centerPosition.z))
                          box.position = corners.lfh
-                         
-                         print("3pivot: \(box.pivot)")
-                         print("3position: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -842,12 +824,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:rfd --> pivot:lbh
                  else if hit.node == corner4 {
                      if selected == false{
-
-                         print("4centerPosition:\(centerPosition)")
-                         print("4updatedHeight: \(updatedHeight)")
-                         print("4updatedWidth: \(updatedWidth)")
-                         print("4updatedLength: \(updatedLength)")
-                         print("4cornersMethod: \(corners)")
+                        if selectionCounter == 0{
+                            startTime = Date()
+                        }
                          selected = true
                          selectedCorner = corner4
                          tapped4 = true
@@ -856,9 +835,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), Float(updatedHeight/2), -Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbh.x-centerPosition.x), Float(corners.lbh.y-centerPosition.y), Float(corners.lbh.z-centerPosition.z))
                          box.position = corners.lbh
-                         
-                         print("4pivot: \(box.pivot)")
-                         print("4position: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -882,12 +858,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:lbh --> pivot:rfd
                  else if hit.node == corner5{
                      if selected == false{
-
-                         print("5centerPosition:\(centerPosition)")
-                         print("5updatedHeight: \(updatedHeight)")
-                         print("5updatedWidth: \(updatedWidth)")
-                         print("5updatedLength: \(updatedLength)")
-                         print("5cornersMethod: \(corners)")
+                        if selectionCounter == 0{
+                            startTime = Date()
+                        }
                          selected = true
                          selectedCorner = corner5
                          tapped5 = true
@@ -896,9 +869,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.rfd.x-centerPosition.x), Float(corners.rfd.y-centerPosition.y), Float(corners.rfd.z-centerPosition.z))
                          box.position = corners.rfd
-                         
-                         print("5pivot: \(box.pivot)")
-                         print("5position: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -922,13 +892,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:lfh --> pivot:rbd
                  else if hit.node == corner6{
                      if selected == false{
-
-                         print("6centerPosition:\(centerPosition)")
-                         print("6updatedHeight: \(updatedHeight)")
-                         print("6updatedWidth: \(updatedWidth)")
-                         print("6updatedLength: \(updatedLength)")
-                         print("6cornersMethod: \(corners)")
-                         
+                        if selectionCounter == 0{
+                            startTime = Date()
+                        }
                          selected = true
                          selectedCorner = corner6
                          tapped6 = true
@@ -937,9 +903,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(Float(updatedWidth/2), -Float(updatedHeight/2), -Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.rbd.x-centerPosition.x), Float(corners.rbd.y-centerPosition.y), Float(corners.rbd.z-centerPosition.z))
                          box.position = corners.rbd
-                         
-                         print("6pivot: \(box.pivot)")
-                         print("6position: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -963,12 +926,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:rbh --> pivot:lfd
                  else if hit.node == corner7 {
                      if selected == false{
-                         print("7centerPosition:\(centerPosition)")
-                         print("7updatedHeight: \(updatedHeight)")
-                         print("7updatedWidth: \(updatedWidth)")
-                         print("7updatedLength: \(updatedLength)")
-                         print("7cornersMethod: \(corners)")
-                         
+                         if selectionCounter == 0{
+                             startTime = Date()
+                         }
                          selected = true
                          selectedCorner = corner7
                          tapped7 = true
@@ -977,9 +937,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(updatedWidth/2), -Float(updatedHeight/2), Float(updatedLength/2))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lfd.x-centerPosition.x), Float(corners.lfd.y-centerPosition.y), Float(corners.lfd.z-centerPosition.z))
                          box.position = corners.lfd
-                         
-                         print("7pivot: \(box.pivot)")
-                         print("7position: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -1002,12 +959,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                  //select:rfh --> pivot:lbd
                  else if hit.node == corner8 {
                      if selected == false{
-                         print("8centerPosition:\(centerPosition)")
-                         print("8updatedHeight: \(updatedHeight)")
-                         print("8updatedWidth: \(updatedWidth)")
-                         print("8updatedLength: \(updatedLength)")
-                         print("8cornersMethod: \(corners)")
-                         
+                         if selectionCounter == 0{
+                             startTime = Date()
+                         }
                          selected = true
                          selectedCorner = corner8
                          tapped8 = true
@@ -1016,9 +970,6 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                          //box.pivot = SCNMatrix4MakeTranslation(-Float(0.5*updatedWidth), -Float(0.5*updatedHeight), -Float(0.5*updatedLength))
                          box.pivot = SCNMatrix4MakeTranslation(Float(corners.lbd.x-centerPosition.x), Float(corners.lbd.y-centerPosition.y), Float(corners.lbd.z-centerPosition.z))
                          box.position = corners.lbd
-                         
-                         print("8pivot: \(box.pivot)")
-                         print("8position: \(box.position)")
                          
                          if let textGeometry1 = text1.geometry as? SCNText {
                              textGeometry1.string = "W:\(widthIncmStr)cm"
@@ -1556,13 +1507,9 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 text1.opacity = 0.01
                 text2.opacity = 0.01
                 text3.opacity = 0.01
-
+                endTime = Date()
                 
             }
-            //if task is ended at this point the left amount of degrees between the objects is recorded
-
-            //in case task is ended at this point record endTime
-            endTime = Date()
         }
         
         if recStarted && selected{
@@ -1618,6 +1565,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
                 DispatchQueue.main.async {
                     self.instructLabel.text = "You finished"
                 }
+                return
             }
         }
     }
@@ -1673,7 +1621,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
         let boundingBox = SCNNode(geometry: box)
         
         if boundingBox != scene.drawingNode.childNode(withName: "currentBoundingBox", recursively: false){
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             centerPosition = boundingBox.position
             print("position:\(boundingBox.position)")
             boundingBox.name = "currentBoundingBox"
@@ -1681,7 +1629,7 @@ class PenRayScalingPlugin: Plugin, UserStudyRecordPluginProtocol {
             scene.drawingNode.addChildNode(boundingBox)
             }
         else{
-            boundingBox.position = SCNVector3(0,0,-0.3)
+            boundingBox.position = SCNVector3(0,0.2,0)
             
         }
         
